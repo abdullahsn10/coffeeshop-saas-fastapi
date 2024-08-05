@@ -69,7 +69,7 @@ CREATE TABLE customers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     deleted BOOLEAN DEFAULT FALSE,
-    phone_no VARCHAR(20) UNIQUE
+    phone_no VARCHAR(20) NOT NULL UNIQUE
 );
 
 -- orders table
