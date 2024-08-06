@@ -8,4 +8,3 @@ from shops_app.schemas.menu_item import *
 from shops_app.schemas.order import *
 from shops_app.schemas.order_item import *
 from shops_app.schemas.user import *
-from shops_app.schemas.response import *
