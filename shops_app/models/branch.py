@@ -9,8 +9,8 @@ class Branch(Base):
     __tablename__ = 'branches'
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    location = Column(String)
+    name = Column(String, nullable=False)
+    location = Column(String, nullable=False)
     deleted = Column(Boolean, default=False)
     # relationship with coffee shops
     coffee_shop_id = Column(Integer, ForeignKey('coffee_shops.id'))

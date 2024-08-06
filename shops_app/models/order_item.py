@@ -1,6 +1,7 @@
 from shops_app.settings.database import Base
 from sqlalchemy import Column, Integer, String, ForeignKey
 
+
 class OrderItem(Base):
     """
     SQLAlchemy model for OrderItem relationship table between
@@ -10,6 +11,5 @@ class OrderItem(Base):
 
     # relationship attribute (many-many between order and menu items table)
     order_id = Column(Integer, ForeignKey('orders.id'), primary_key=True)
-    item_id = Column(Integer, ForeignKey('items.id'), primary_key=True)
-
-
+    item_id = Column(Integer, ForeignKey('menu_items.id'), primary_key=True)
+    quantity = Column(Integer, nullable=False)

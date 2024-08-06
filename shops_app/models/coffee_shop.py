@@ -9,6 +9,6 @@ class CoffeeShop(Base):
     __tablename__ = 'coffee_shops'
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    location = Column(String)
+    name = Column(String, nullable=False)
+    location = Column(String, nullable=False)
     contact_info = Column(String)
