@@ -9,10 +9,10 @@ class UserRole(Enum):
     Enum class to represent the role of a user.
     'cashier', 'chef', 'order_receiver', 'admin'
     """
-    ADMIN = 'admin'
-    CASHIER = 'cashier'
-    CHEF = 'chef'
-    ORDER_RECEIVER = 'order_receiver'
+    ADMIN = 'ADMIN'
+    CASHIER = 'CASHIER'
+    CHEF = 'CHEF'
+    ORDER_RECEIVER = 'ORDER_RECEIVER'
 
 
 class User(Base):

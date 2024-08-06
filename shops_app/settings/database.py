@@ -5,7 +5,7 @@ from shops_app.settings.settings import DATABASE_SETTINGS
 
 
 # creating the engine
-engine = create_engine(DATABASE_SETTINGS["URL"])
+engine = create_engine(url=DATABASE_SETTINGS["URL"])
 
 # creating the db session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
