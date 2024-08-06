@@ -6,6 +6,7 @@ from shops_app.settings.database import get_db
 from shops_app.helpers import authentication
 from shops_app.exceptions.exception import *
 from sqlalchemy.orm import Session
+
 router = APIRouter()
 
 
@@ -34,10 +35,18 @@ def signup_endpoint(request: schemas.SignUpIn, response: Response,
 @router.post('/login', response_model=schemas.ResponseMessage)
 def login(request: schemas.LoginIn, response: Response,
           db: Session = Depends(get_db)):
+    """
+    This endpoint is used to login a user into the system
+    """
     try:
         response.status_code = status.HTTP_200_OK
-        return authentication.verify_user_credentials_and_gen_token(
-            request=request, db=db
+        token: schemas.Token = (
+            authentication.verify_user_credentials_and_gen_token(
+                request=request, db=db
+            ))
+        return schemas.ResponseMessage(
+            detail='Login Successfully',
+            results=token,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -45,7 +54,3 @@ def login(request: schemas.LoginIn, response: Response,
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=str(e))
-
-
-
-

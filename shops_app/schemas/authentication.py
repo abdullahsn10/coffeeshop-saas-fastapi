@@ -21,4 +21,9 @@ class LoginIn(BaseModel):
     password: str
 
 
-
+class Token(BaseModel):
+    """
+    pydantic schema for JWT Token, used in returning a token to the user
+    """
+    access_token: str
+    token_type: str

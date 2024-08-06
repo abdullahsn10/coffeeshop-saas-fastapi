@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
-from shops_app import models
-from shops_app.schemas.user import UserBase
-from shops_app.models import UserRole, User
+from shops_app import schemas, models
 from shops_app.utils.hashing import Hash
+
 
 def is_exists_by_email(email: str, db: Session) -> bool:
     """
@@ -26,7 +25,7 @@ def is_exists_by_phone(phone_no: str, db: Session) -> bool:
     return db.query(models.User).filter(models.User.phone_no == phone_no).first() is not None
 
 
-def create(request: UserBase, role: UserRole, db: Session) -> User:
+def create(request: schemas.UserBase, role: models.UserRole, db: Session) -> models.User:
     """
     This helper function used to create a new user.
     *Args:
@@ -40,7 +39,7 @@ def create(request: UserBase, role: UserRole, db: Session) -> User:
     request.password = Hash.bcrypt_hash(password=request.password)
 
     # *******NOTE: branch id
-    created_user_instance = User(
+    created_user_instance = models.User(
         first_name=request.first_name,
         last_name=request.last_name,
         email=request.email,
@@ -54,3 +53,14 @@ def create(request: UserBase, role: UserRole, db: Session) -> User:
     return created_user_instance
 
 
+def get_by_email(email: str, db: Session) -> models.User:
+    """
+    This helper function used to get a user by email.
+    *Args:
+        email (str): The email to check.
+        db (Session): A database session.
+
+    *Returns:
+        the User instance if exists, None otherwise.
+    """
+    return db.query(models.User).filter(models.User.email == email).first()
