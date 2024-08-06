@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from shops_app import models
 from shops_app.schemas.user import UserBase
 from shops_app.models import UserRole, User
-
+from shops_app.utils.hashing import Hash
 
 def is_exists_by_email(email: str, db: Session) -> bool:
     """
@@ -36,6 +36,9 @@ def create(request: UserBase, role: UserRole, db: Session) -> User:
     *Returns:
         User: The created user.
     """
+    # hash the user password
+    request.password = Hash.bcrypt_hash(password=request.password)
+
     # *******NOTE: branch id
     created_user_instance = User(
         first_name=request.first_name,

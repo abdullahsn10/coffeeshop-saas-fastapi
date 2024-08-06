@@ -15,9 +15,8 @@ def signup_endpoint(request: schemas.SignUpIn,
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=str(se))
-    # except Exception as e:
-    #     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #                         detail=str(e))
-
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e))
 
 
