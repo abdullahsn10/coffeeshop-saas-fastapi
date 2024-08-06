@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from shops_app.schemas.branch import BranchBase
 from shops_app.schemas.coffee_shop import CoffeeShopBase
 from shops_app.schemas.user import UserBase
-
+from shops_app.models.user import UserRole
 
 class SignUpRequestBody(BaseModel):
     """
@@ -29,3 +29,15 @@ class Token(BaseModel):
     """
     access_token: str
     token_type: str
+
+
+class TokenData(BaseModel):
+    """
+    pydantic schema for the token data
+    """
+    id: int
+    email: str
+    role: UserRole
+    branch_id: int
+    coffee_shop_id: int
+
