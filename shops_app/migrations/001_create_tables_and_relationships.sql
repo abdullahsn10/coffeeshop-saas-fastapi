@@ -24,7 +24,7 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
-    phone_number BIGINT UNIQUE NOT NULL,
+    phone_number VARCHAR(255) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     role user_role NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -75,7 +75,7 @@ CREATE TABLE customers (
 -- orders table
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
-    issue_date DATE NOT NULL,
+    issue_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     customer_id INT,
     employee_id INT,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
