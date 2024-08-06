@@ -7,7 +7,7 @@ class InventoryItem(Base):
     """
     SQLAlchemy model for inventory items table
     """
-    __tablename__ = 'inventory_item'
+    __tablename__ = 'inventory_items'
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
