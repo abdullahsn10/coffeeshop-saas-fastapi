@@ -9,7 +9,7 @@ from shops_app.exceptions.exception import *
 from sqlalchemy.orm import Session
 
 
-def signup(request: SignUpIn, db: Session) -> ResponseMessage:
+def signup(request: SignUpIn, db: Session) -> UserCredentialsInResponse:
     """
     This helper function used to signup a new coffee shop into the system,
     also create an admin user for the registered coffee shop.
@@ -19,7 +19,8 @@ def signup(request: SignUpIn, db: Session) -> ResponseMessage:
 
         db (Session): Database session object.
     *Returns:
-        ResponseMessage: The response object which contains result and details
+        UserCredentialsInResponse: An object containing the registered admin user
+        credentials(emai, phone_no).
     """
     coffee_shop_instance: CoffeeShopBase = request.shop_details
     admin_user_instance: UserBase = request.admin_details
@@ -33,10 +34,7 @@ def signup(request: SignUpIn, db: Session) -> ResponseMessage:
     created_coffee_shop = coffee_shop.create(request=coffee_shop_instance, db=db)
     created_admin_user = user.create(request=admin_user_instance, db=db,
                                      role=UserRole.ADMIN)
-    return ResponseMessage(
-        detail='Coffee Shop Registered Successfully',
-        results=UserCredentialsInResponse(
+    return UserCredentialsInResponse(
             email=created_admin_user.email,
             phone_no=created_admin_user.phone_no,
         )
-    )
