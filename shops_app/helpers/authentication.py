@@ -59,5 +59,7 @@ def verify_user_credentials_and_gen_token(request: schemas.LoginRequestBody, db:
         raise ShopsAppException('Username or Password incorrect')
 
     # create jwt and return it
-    access_token = generate_token_for_user(user=current_user)
+    # get the coffee shop id
+    coffee_shop_id = branch.get_coffee_shop_id(db=db, branch_id=current_user.branch_id)
+    access_token = generate_token_for_user(user=current_user, coffee_shop_id = coffee_shop_id)
     return schemas.Token(access_token=access_token, token_type="bearer")

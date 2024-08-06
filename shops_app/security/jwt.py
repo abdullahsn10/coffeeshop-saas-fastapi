@@ -27,7 +27,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-def generate_token_for_user(user: schemas.UserFullInformation):
+def generate_token_for_user(user: schemas.UserFullInformation, coffee_shop_id: int):
     """
     Call this function to generate a jwt token for the user
     *Args:
@@ -38,6 +38,7 @@ def generate_token_for_user(user: schemas.UserFullInformation):
         "sub": user.email,
         "role": user.role,
         "branch_id": user.branch_id,
+        "coffee_shop_id": coffee_shop_id
     }
     return create_access_token(user_data)
 
