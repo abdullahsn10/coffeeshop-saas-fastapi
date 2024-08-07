@@ -65,3 +65,18 @@ def get_by_email(email: str, db: Session) -> models.User:
         the User instance if exists, None otherwise.
     """
     return db.query(models.User).filter(models.User.email == email).first()
+
+
+def get_coffee_shop_id(db: Session, user_id: int) -> int:
+    """
+    This helper function will be used to get the coffee shop id of the user
+    :param db: db session
+    :param user_id: the user id to get the coffee shop id for
+    :return: the coffee shop id
+    """
+    result = (db.query(models.CoffeeShop.id)
+              .filter(models.User.id == user_id)
+              .filter(models.User.branch_id == models.Branch.id)
+              .filter(models.Branch.coffee_shop_id == models.CoffeeShop.id)
+              .first())
+    return result[0]
