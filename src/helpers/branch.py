@@ -1,3 +1,5 @@
+from typing import Dict
+
 from src import schemas, models
 from sqlalchemy.orm import Session
 from src.exceptions.exception import *
@@ -98,3 +100,36 @@ def update(request: schemas.BranchBase, db: Session, id: int,
     db.commit()
     db.refresh(found_branch)
     return found_branch
+
+
+def delete(db: Session, id: int,
+           coffee_shop_id: int,
+           user_coffee_shop_id: int) -> dict[str, str]:
+    """
+    This helper function will be used to delete a branch
+    :param db: db session
+    :param id: the id of the branch needed to be deleted
+    :param coffee_shop_id: the coffee shop id of the branch
+    :param user_coffee_shop_id: the user coffee shop id
+    :return: str representation of the deleted branch
+    """
+
+    # check coffee_shop exists, branch exits
+    if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
+        raise ShopsAppException(f'Coffee Shop with id = {coffee_shop_id} does not exist')
+
+    found_branch = find_by_id(db=db, id=id)
+    if not found_branch:
+        raise ShopsAppException(f'Branch with id = {id} does not exist')
+
+    # check if the user authorized to delete on this coffee shop
+    if user_coffee_shop_id != coffee_shop_id:
+        raise ShopsAppUnAuthorizedException(f'You are not authorized to update branch on this shop')
+
+    # check if the branch belongs to this coffee shop
+    if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
+        raise ShopsAppException(f'Branch with id = {id} does not exist in this coffee shop')
+
+    db.delete(found_branch)
+    db.commit()
+    return {'detail': 'Branch deleted successfully'}
