@@ -74,6 +74,7 @@ def get_coffee_shop_id(db: Session, user_id: int) -> int:
     :param user_id: the user id to get the coffee shop id for
     :return: the coffee shop id
     """
+    # join query to get coffee shop id
     result = (db.query(models.CoffeeShop.id)
               .filter(models.User.id == user_id)
               .filter(models.User.branch_id == models.Branch.id)
