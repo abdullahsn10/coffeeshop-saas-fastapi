@@ -74,9 +74,11 @@ def get_by_email(email: str, db: Session) -> models.User:
 def get_coffee_shop_id(db: Session, user_id: int) -> int:
     """
     This helper function will be used to get the coffee shop id of the user
-    :param db: db session
-    :param user_id: the user id to get the coffee shop id for
-    :return: the coffee shop id
+    *Args:
+        db (Session): A database session.
+        user_id (int): The user id.
+    *Returns:
+        the coffee shop id of the user
     """
     # join query to get coffee shop id
     result = (

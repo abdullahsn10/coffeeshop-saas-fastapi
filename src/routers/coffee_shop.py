@@ -5,6 +5,7 @@ from src.security.oauth2 import require_role
 from src.settings.database import get_db
 from src.helpers import coffee_shop, branch
 from src.exceptions.exception import *
+from src.utils.control_access import check_if_user_can_access_shop
 
 router = APIRouter(
     tags=["Coffee Shops"],
@@ -23,12 +24,11 @@ def update_coffee_shop_endpoint(
     PUT endpoint to fully update a specific coffee shop
     """
     try:
-        return coffee_shop.update(
-            request=request,
-            db=db,
-            id=coffee_shop_id,
-            user_coffe_shop_id=current_user.coffee_shop_id,
+        check_if_user_can_access_shop(
+            user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
         )
+        return coffee_shop.update(request=request, db=db, id=coffee_shop_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:
@@ -50,12 +50,11 @@ def create_branch_endpoint(
     POST endpoint to create a branch for a specific coffee shop
     """
     try:
-        return branch.create(
-            request=request,
-            coffee_shop_id=coffee_shop_id,
-            db=db,
+        check_if_user_can_access_shop(
             user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
         )
+        return branch.create(request=request, coffee_shop_id=coffee_shop_id, db=db)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:
@@ -81,12 +80,12 @@ def update_branch_endpoint(
     """
 
     try:
-        return branch.update(
-            request=request,
-            db=db,
-            id=branch_id,
-            coffee_shop_id=coffee_shop_id,
+        check_if_user_can_access_shop(
             user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
+        )
+        return branch.update(
+            request=request, db=db, id=branch_id, coffee_shop_id=coffee_shop_id
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
@@ -110,12 +109,11 @@ def delete_branch_endpoint(
     """
 
     try:
-        return branch.delete(
-            db=db,
-            id=branch_id,
-            coffee_shop_id=coffee_shop_id,
+        check_if_user_can_access_shop(
             user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
         )
+        return branch.delete(db=db, id=branch_id, coffee_shop_id=coffee_shop_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:

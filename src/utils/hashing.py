@@ -9,8 +9,10 @@ class Hash:
     def bcrypt_hash(cls, password: str) -> str:
         """
         Hash the password using bcrypt algorithm
-        :param password: the password to hash
-        :return: the hashed password
+        *Args:
+            password: <PASSWORD> to be hashed
+        *Returns:
+            The hashed password using BCrypt algorithm
         """
         return pwd_context.hash(password)
 
@@ -18,8 +20,10 @@ class Hash:
     def verify(cls, plain_password: str, hashed_password: str) -> bool:
         """
         Verify the plain password against the hashed password
-        :param plain_password: the plain password to verify
-        :param hashed_password: the hashed password to verify against
-        :return: True if the plain password matches the hashed password, False otherwise
+        *Args:
+            plain_password: plain text password to be verified
+            hashed_password: hashed password to compare against and verify
+        *Returns:
+            True if the hashed password matches the plain password, False otherwise
         """
         return pwd_context.verify(secret=plain_password, hash=hashed_password)

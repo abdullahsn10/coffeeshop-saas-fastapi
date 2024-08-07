@@ -5,6 +5,11 @@ from sqlalchemy.orm import Session
 def create(request: schemas.BranchUserBase, db: Session) -> models.BranchUser:
     """
     This helper function will be used to create a relationship between branch and user(Admin)
+    *Args:
+        request (schemas.BranchUserBase): the request object which contains manager and branch info
+        db (Session): the database session
+    *Returns:
+        The created branchUser instance
     """
     created_relationship_instance = models.BranchUser(
         **request.model_dump(exclude_unset=True)

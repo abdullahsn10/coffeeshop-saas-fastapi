@@ -49,9 +49,11 @@ def generate_token_for_user(user: schemas.UserFullInformation, coffee_shop_id: i
 def verify_token(token: str, credentials_exception) -> schemas.TokenData:
     """
     Verify the token and return the token data if the token is valid
-    :param token: token to be verified
-    :param credentials_exception: exception to be raised if the token is invalid
-    :return: token data if the token is valid
+    *Args:
+        token: token to be verified
+        credentials_exception: exception to be raised if the token is invalid
+    *Returns:
+        token data if the token is valid
     """
     try:
         payload = jwt.decode(
