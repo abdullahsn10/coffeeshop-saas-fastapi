@@ -141,7 +141,7 @@ def delete(
     # check if the user authorized to delete on this coffee shop
     if user_coffee_shop_id != coffee_shop_id:
         raise ShopsAppUnAuthorizedException(
-            f"You are not authorized to update branch on this shop"
+            f"You are not authorized to delete branch on this shop"
         )
 
     # check if the branch belongs to this coffee shop
