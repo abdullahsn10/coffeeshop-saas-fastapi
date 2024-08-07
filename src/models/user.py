@@ -19,7 +19,7 @@ class User(Base):
     """
     SQLAlchemy model to represent a user.
     """
-    __tablename__ = 'users'
+    __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True, index=True)
     first_name = Column(String, nullable=False)
@@ -30,6 +30,6 @@ class User(Base):
     deleted = Column(Boolean, default=False)
     role = Column(SQLAlchemyEnum(UserRole), nullable=False)
     # relationship with branch (belongs to)
-    branch_id = Column(Integer, ForeignKey('branches.id'))
+    branch_id = Column(Integer, ForeignKey('branch.id'))
 
 

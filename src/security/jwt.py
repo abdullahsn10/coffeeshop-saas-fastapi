@@ -3,9 +3,10 @@ import jwt
 from src import schemas
 from src.models.user import UserRole
 from src.settings.settings import JWT_TOKEN_SETTINGS
+from typing import Optional
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a jwt token with the specified data and expiration time
     """
@@ -53,22 +54,24 @@ def verify_token(token: str, credentials_exception) -> schemas.TokenData:
     try:
         payload = jwt.decode(token, JWT_TOKEN_SETTINGS["PUBLIC_KEY"],
                              algorithms=JWT_TOKEN_SETTINGS["ALGORITHM"])
-        email: str = payload.get("sub")
-        role: str = payload.get("role")
-        id: int = payload.get("id")
-        coffee_shop_id: int = payload.get("coffee_shop_id")
-        branch_id: int = payload.get("branch_id")
 
-        # check fields are not None
-        if any(field is None for field in (email, role, id, coffee_shop_id, branch_id)):
+        required_fields = ["sub", "role", "id", "coffee_shop_id", "branch_id"]
+
+        if not all(field in payload for field in required_fields):
             raise credentials_exception
+
         try:
-            role_enum = UserRole(role)  # Convert role string back to UserRole enum
+            role_enum = UserRole(payload["role"])  # Convert role string back to UserRole enum
         except ValueError:
             raise credentials_exception
-        token_data = schemas.TokenData(email=email, role=role_enum,
-                                       id=id, coffee_shop_id=coffee_shop_id,
-                                       branch_id=branch_id)
+
+        token_data = schemas.TokenData(
+            email=payload["sub"],
+            role=role_enum,
+            id=payload["id"],
+            coffee_shop_id=payload["coffee_shop_id"],
+            branch_id=payload["branch_id"]
+        )
         return token_data
     except jwt.InvalidTokenError:
         raise credentials_exception

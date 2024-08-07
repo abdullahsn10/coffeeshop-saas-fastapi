@@ -7,11 +7,11 @@ class Order(Base):
     """
     SQLAlchemy model for orders
     """
-    __tablename__ = 'orders'
+    __tablename__ = 'order'
 
     id = Column(Integer, primary_key=True)
     issue_date = Column(TIMESTAMP, nullable=False, default=datetime.now)
     # relationship with customers table (customer of the order)
-    customer_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
+    customer_id = Column(Integer, ForeignKey('customer.id'), nullable=False)
     # relationship with users table (employee who placed the order)
-    employee_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    employee_id = Column(Integer, ForeignKey('user.id'), nullable=False)

@@ -7,7 +7,7 @@ class MenuItem(Base):
     """
     SQLAlchemy model for MenuItem table
     """
-    __tablename__ = 'menu_items'
+    __tablename__ = 'menu_item'
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)

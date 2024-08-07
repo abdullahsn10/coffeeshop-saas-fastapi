@@ -6,7 +6,7 @@ class Customer(Base):
     """
     SQLAlchemy model for Customer table
     """
-    __tablename__ = 'customers'
+    __tablename__ = 'customer'
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
