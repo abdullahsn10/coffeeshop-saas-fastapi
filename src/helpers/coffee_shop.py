@@ -3,6 +3,7 @@ from src import schemas, models
 from src.exceptions.exception import *
 from src.helpers import user
 
+
 def create(request: schemas.CoffeeShopBase, db: Session) -> models.CoffeeShop:
     """
     This helper function used to create a coffee shop
@@ -12,8 +13,9 @@ def create(request: schemas.CoffeeShopBase, db: Session) -> models.CoffeeShop:
     *Returns:
         CoffeeShop: created coffee shop instance
     """
-    created_shop_instance: models.CoffeeShop \
-        = models.CoffeeShop(**request.model_dump(exclude_unset=True))
+    created_shop_instance: models.CoffeeShop = models.CoffeeShop(
+        **request.model_dump(exclude_unset=True)
+    )
     db.add(created_shop_instance)
     db.commit()
     db.refresh(created_shop_instance)
@@ -30,8 +32,9 @@ def find_by_id(db: Session, id: int) -> models.CoffeeShop:
     return db.query(models.CoffeeShop).filter(models.CoffeeShop.id == id).first()
 
 
-def update(request: schemas.CoffeeShopBase, db: Session,
-           id: int, user_id: int) -> models.CoffeeShop:
+def update(
+    request: schemas.CoffeeShopBase, db: Session, id: int, user_id: int
+) -> models.CoffeeShop:
     """
     This helper function used to fully update a coffee shop
     :param request: coffee shop details
@@ -45,15 +48,19 @@ def update(request: schemas.CoffeeShopBase, db: Session,
 
     found_coffee_shop: models.CoffeeShop = find_by_id(db=db, id=id)
     if not found_coffee_shop:
-        raise ShopsAppException(f'Coffee shop with id {id} could not be found')
+        raise ShopsAppException(f"Coffee shop with id {id} could not be found")
 
     # check if the user belongs to this coffee shop
     user_coffe_shop_id = user.get_coffee_shop_id(db=db, user_id=user_id)
     if user_coffe_shop_id != found_coffee_shop.id:
-        raise ShopsAppUnAuthorizedException(f'You are not authorized to update this coffee shop')
+        raise ShopsAppUnAuthorizedException(
+            f"You are not authorized to update this coffee shop"
+        )
 
     # Update all fields of the coffee shop object based on the request
-    update_data = request.model_dump(exclude_unset=True)  # Get dictionary of all set fields in request
+    update_data = request.model_dump(
+        exclude_unset=True
+    )  # Get dictionary of all set fields in request
     for field, value in update_data.items():
         setattr(found_coffee_shop, field, value)
     db.commit()

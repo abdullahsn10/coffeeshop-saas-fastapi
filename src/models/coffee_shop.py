@@ -6,7 +6,8 @@ class CoffeeShop(Base):
     """
     SQLAlchemy model for Coffee Shop table
     """
-    __tablename__ = 'coffee_shop'
+
+    __tablename__ = "coffee_shop"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)

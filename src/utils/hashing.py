@@ -22,5 +22,4 @@ class Hash:
         :param hashed_password: the hashed password to verify against
         :return: True if the plain password matches the hashed password, False otherwise
         """
-        return pwd_context.verify(secret=plain_password,
-                                  hash=hashed_password)
+        return pwd_context.verify(secret=plain_password, hash=hashed_password)

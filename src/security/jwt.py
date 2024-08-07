@@ -22,9 +22,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         to_encode["role"] = to_encode["role"].value
 
     # create jwt token with the specified data
-    encoded_jwt = jwt.encode(to_encode,
-                             JWT_TOKEN_SETTINGS["PRIVATE_KEY"],
-                             algorithm=JWT_TOKEN_SETTINGS["ALGORITHM"])
+    encoded_jwt = jwt.encode(
+        to_encode,
+        JWT_TOKEN_SETTINGS["PRIVATE_KEY"],
+        algorithm=JWT_TOKEN_SETTINGS["ALGORITHM"],
+    )
     return encoded_jwt
 
 
@@ -39,7 +41,7 @@ def generate_token_for_user(user: schemas.UserFullInformation, coffee_shop_id: i
         "sub": user.email,
         "role": user.role,
         "branch_id": user.branch_id,
-        "coffee_shop_id": coffee_shop_id
+        "coffee_shop_id": coffee_shop_id,
     }
     return create_access_token(user_data)
 
@@ -52,8 +54,11 @@ def verify_token(token: str, credentials_exception) -> schemas.TokenData:
     :return: token data if the token is valid
     """
     try:
-        payload = jwt.decode(token, JWT_TOKEN_SETTINGS["PUBLIC_KEY"],
-                             algorithms=JWT_TOKEN_SETTINGS["ALGORITHM"])
+        payload = jwt.decode(
+            token,
+            JWT_TOKEN_SETTINGS["PUBLIC_KEY"],
+            algorithms=JWT_TOKEN_SETTINGS["ALGORITHM"],
+        )
 
         required_fields = ["sub", "role", "id", "coffee_shop_id", "branch_id"]
 
@@ -61,7 +66,9 @@ def verify_token(token: str, credentials_exception) -> schemas.TokenData:
             raise credentials_exception
 
         try:
-            role_enum = UserRole(payload["role"])  # Convert role string back to UserRole enum
+            role_enum = UserRole(
+                payload["role"]
+            )  # Convert role string back to UserRole enum
         except ValueError:
             raise credentials_exception
 
@@ -70,7 +77,7 @@ def verify_token(token: str, credentials_exception) -> schemas.TokenData:
             role=role_enum,
             id=payload["id"],
             coffee_shop_id=payload["coffee_shop_id"],
-            branch_id=payload["branch_id"]
+            branch_id=payload["branch_id"],
         )
         return token_data
     except jwt.InvalidTokenError:
