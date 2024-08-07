@@ -1,9 +1,12 @@
 from src import schemas, models
 from sqlalchemy.orm import Session
+from src.exceptions.exception import *
+from src.helpers import coffee_shop
 
 
 def create(
-    request: schemas.BranchBase, coffee_shop_id: int, db: Session
+        request: schemas.BranchBase, coffee_shop_id: int, db: Session,
+        user_coffee_shop_id: int
 ) -> models.Branch:
     """
     This helper function will be used to create a new branch
@@ -13,6 +16,14 @@ def create(
     *Returns:
         the created branch
     """
+    # check if the shop exists
+    if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
+        raise ShopsAppException(f'Coffe Shop with id = {coffee_shop_id} does not exist')
+
+    # check if user authorized to create branch in this shop
+    if coffee_shop_id != user_coffee_shop_id:
+        raise ShopsAppUnAuthorizedException('You are not authorized to create branch on this sop')
+
     created_branch = models.Branch(
         name=request.name, location=request.location, coffee_shop_id=coffee_shop_id
     )

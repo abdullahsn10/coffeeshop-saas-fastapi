@@ -33,14 +33,14 @@ def find_by_id(db: Session, id: int) -> models.CoffeeShop:
 
 
 def update(
-    request: schemas.CoffeeShopBase, db: Session, id: int, user_id: int
+    request: schemas.CoffeeShopBase, db: Session, id: int, user_coffe_shop_id: int
 ) -> models.CoffeeShop:
     """
     This helper function used to fully update a coffee shop
     :param request: coffee shop details
     :param db: db session
     :param id: the coffee shop id needed to be updated
-    :param user_id: the user id who needs to update the coffee shop
+    :param user_coffe_shop_id: the coffee shop in which user belongs it
     :return: the updated coffee shop instance if the coffee shop was found,
     or raise Exception if the coffee shop was not found or if the user not authorized
     to update this coffee shop
@@ -50,8 +50,6 @@ def update(
     if not found_coffee_shop:
         raise ShopsAppException(f"Coffee shop with id {id} could not be found")
 
-    # check if the user belongs to this coffee shop
-    user_coffe_shop_id = user.get_coffee_shop_id(db=db, user_id=user_id)
     if user_coffe_shop_id != found_coffee_shop.id:
         raise ShopsAppUnAuthorizedException(
             f"You are not authorized to update this coffee shop"

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from src import schemas, models
 from src.security.oauth2 import require_role
 from src.settings.database import get_db
-from src.helpers import coffee_shop
+from src.helpers import coffee_shop, branch
 from src.exceptions.exception import *
 
 router = APIRouter(
@@ -13,18 +13,41 @@ router = APIRouter(
 
 
 @router.put("/{coffee_shop_id}")
-def update_coffee_shop(
-    coffee_shop_id: int,
-    request: schemas.CoffeeShopBase,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+def update_coffee_shop_endpoint(
+        coffee_shop_id: int,
+        request: schemas.CoffeeShopBase,
+        db: Session = Depends(get_db),
+        current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
-        Fully update coffee shop endpointsss
+        PUT endpoint to fully update a specific coffee shop
     """
     try:
-        return coffee_shop.update(
-            request=request, id=coffee_shop_id, db=db, user_id=current_user.id
+        return coffee_shop.update(request=request,
+                                  db=db,
+                                  id=coffee_shop_id,
+                                  user_coffe_shop_id=current_user.coffee_shop_id)
+    except ShopsAppException as se:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
+    except ShopsAppUnAuthorizedException as ua:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.post('/{coffee_shop_id}/branches')
+def create_branch_endpoint(coffee_shop_id: int, request: schemas.BranchBase,
+                           db: Session = Depends(get_db),
+                           current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+                           ):
+    """
+    POST endpoint to create a branch for a specific coffee shop
+    """
+    try:
+        return branch.create(
+            request=request, coffee_shop_id=coffee_shop_id, db=db, user_coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
