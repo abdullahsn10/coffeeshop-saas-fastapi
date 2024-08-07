@@ -19,6 +19,9 @@ def update_coffee_shop(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
+    """
+        Fully update coffee shop endpoint
+    """
     try:
         return coffee_shop.update(
             request=request, id=coffee_shop_id, db=db, user_id=current_user.id
