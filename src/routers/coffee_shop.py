@@ -20,7 +20,7 @@ def update_coffee_shop(
     current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
-        Fully update coffee shop endpoint
+        Fully update coffee shop endpointsss
     """
     try:
         return coffee_shop.update(
