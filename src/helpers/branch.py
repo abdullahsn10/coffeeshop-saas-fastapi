@@ -7,10 +7,10 @@ from src.helpers import coffee_shop
 
 
 def create(
-        request: schemas.BranchBase,
-        coffee_shop_id: int,
-        db: Session,
-        user_coffee_shop_id: int,
+    request: schemas.BranchBase,
+    coffee_shop_id: int,
+    db: Session,
+    user_coffee_shop_id: int,
 ) -> models.Branch:
     """
     This helper function will be used to create a new branch
@@ -59,12 +59,20 @@ def find_by_id(db: Session, id: int) -> models.Branch:
     :param id: the id of the branch needed to be found
     :return: the found branch instance
     """
-    return db.query(models.Branch).filter(models.Branch.id == id).first()
+    return (
+        db.query(models.Branch)
+        .filter(models.Branch.id == id, models.Branch.deleted == False)
+        .first()
+    )
 
 
-def update(request: schemas.BranchBase, db: Session, id: int,
-           coffee_shop_id: int,
-           user_coffee_shop_id: int) -> models.Branch:
+def update(
+    request: schemas.BranchBase,
+    db: Session,
+    id: int,
+    coffee_shop_id: int,
+    user_coffee_shop_id: int,
+) -> models.Branch:
     """
     This helper function will be used to update a branch
     :param request: the branch information
@@ -77,19 +85,25 @@ def update(request: schemas.BranchBase, db: Session, id: int,
 
     # check coffee_shop exists, branch exits
     if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-        raise ShopsAppException(f'Coffee Shop with id = {coffee_shop_id} does not exist')
+        raise ShopsAppException(
+            f"Coffee Shop with id = {coffee_shop_id} does not exist"
+        )
 
     found_branch = find_by_id(db=db, id=id)
     if not found_branch:
-        raise ShopsAppException(f'Branch with id = {id} does not exist')
+        raise ShopsAppException(f"Branch with id = {id} does not exist")
 
     # check if the user authorized to update on this coffee shop
     if user_coffee_shop_id != coffee_shop_id:
-        raise ShopsAppUnAuthorizedException(f'You are not authorized to update branch on this shop')
+        raise ShopsAppUnAuthorizedException(
+            f"You are not authorized to update branch on this shop"
+        )
 
     # check if the branch belongs to this coffee shop
     if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
-        raise ShopsAppException(f'Branch with id = {id} does not exist in this coffee shop')
+        raise ShopsAppException(
+            f"Branch with id = {id} does not exist in this coffee shop"
+        )
 
     # Update all fields of the branch object based on the request
     update_data = request.model_dump(
@@ -102,9 +116,9 @@ def update(request: schemas.BranchBase, db: Session, id: int,
     return found_branch
 
 
-def delete(db: Session, id: int,
-           coffee_shop_id: int,
-           user_coffee_shop_id: int) -> dict[str, str]:
+def delete(
+    db: Session, id: int, coffee_shop_id: int, user_coffee_shop_id: int
+) -> dict[str, str]:
     """
     This helper function will be used to delete a branch
     :param db: db session
@@ -116,20 +130,26 @@ def delete(db: Session, id: int,
 
     # check coffee_shop exists, branch exits
     if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-        raise ShopsAppException(f'Coffee Shop with id = {coffee_shop_id} does not exist')
+        raise ShopsAppException(
+            f"Coffee Shop with id = {coffee_shop_id} does not exist"
+        )
 
     found_branch = find_by_id(db=db, id=id)
     if not found_branch:
-        raise ShopsAppException(f'Branch with id = {id} does not exist')
+        raise ShopsAppException(f"Branch with id = {id} does not exist")
 
     # check if the user authorized to delete on this coffee shop
     if user_coffee_shop_id != coffee_shop_id:
-        raise ShopsAppUnAuthorizedException(f'You are not authorized to update branch on this shop')
+        raise ShopsAppUnAuthorizedException(
+            f"You are not authorized to update branch on this shop"
+        )
 
     # check if the branch belongs to this coffee shop
     if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
-        raise ShopsAppException(f'Branch with id = {id} does not exist in this coffee shop')
+        raise ShopsAppException(
+            f"Branch with id = {id} does not exist in this coffee shop"
+        )
 
-    db.delete(found_branch)
+    found_branch.deleted = True
     db.commit()
-    return {'detail': 'Branch deleted successfully'}
+    return {"detail": "Branch deleted successfully"}
