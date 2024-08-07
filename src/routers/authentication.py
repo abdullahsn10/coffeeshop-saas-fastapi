@@ -6,7 +6,9 @@ from src.helpers import authentication
 from src.exceptions.exception import *
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+    tags=["Authentication"],
+)
 
 
 @router.post("/signup", response_model=schemas.UserCredentialsInResponse)

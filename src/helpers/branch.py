@@ -60,6 +60,29 @@ def find_by_id(db: Session, id: int) -> models.Branch:
     )
 
 
+def find_by_id_and_shop_id(id: int, db: Session, coffee_shop_id: int) -> models.Branch:
+    """
+    This helper will be used to find a branch by id and coffee shop id
+    in otherwords, it will check if the branch belongs to the shop
+    *Args:
+        id (int): branch id to be found
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id that the branch belongs to
+    *Returns:
+        the found branch
+    """
+
+    return (
+        db.query(models.Branch)
+        .filter(
+            models.Branch.id == id,
+            models.Branch.deleted == False,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
+        .first()
+    )
+
+
 def update(
     request: schemas.BranchBase, db: Session, id: int, coffee_shop_id: int
 ) -> models.Branch:
@@ -75,18 +98,24 @@ def update(
         the updated branch
     """
 
-    # check coffee_shop exists, branch exits
-    if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-        raise ShopsAppException(
-            f"Coffee Shop with id = {coffee_shop_id} does not exist"
-        )
-
-    found_branch = find_by_id(db=db, id=id)
-    if not found_branch:
-        raise ShopsAppException(f"Branch with id = {id} does not exist")
+    # # check coffee_shop exists, branch exits
+    # if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
+    #     raise ShopsAppException(
+    #         f"Coffee Shop with id = {coffee_shop_id} does not exist"
+    #     )
+    #
+    # found_branch = find_by_id(db=db, id=id)
+    # if not found_branch:
+    #     raise ShopsAppException(f"Branch with id = {id} does not exist")
+    #
+    # if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
+    #     raise ShopsAppException(
+    #         f"Branch with id = {id} does not exist in this coffee shop"
+    #     )
 
     # check if the branch belongs to this coffee shop
-    if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
+    found_branch = find_by_id_and_shop_id(db=db, id=id, coffee_shop_id=coffee_shop_id)
+    if not found_branch:
         raise ShopsAppException(
             f"Branch with id = {id} does not exist in this coffee shop"
         )
@@ -114,18 +143,24 @@ def delete(db: Session, id: int, coffee_shop_id: int) -> dict[str, str]:
         a dict representation of the deleted branch
     """
 
-    # check coffee_shop exists, branch exits
-    if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-        raise ShopsAppException(
-            f"Coffee Shop with id = {coffee_shop_id} does not exist"
-        )
-
-    found_branch = find_by_id(db=db, id=id)
-    if not found_branch:
-        raise ShopsAppException(f"Branch with id = {id} does not exist")
+    # # check coffee_shop exists, branch exits
+    # if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
+    #     raise ShopsAppException(
+    #         f"Coffee Shop with id = {coffee_shop_id} does not exist"
+    #     )
+    #
+    # found_branch = find_by_id(db=db, id=id)
+    # if not found_branch:
+    #     raise ShopsAppException(f"Branch with id = {id} does not exist")
+    #
+    # if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
+    #     raise ShopsAppException(
+    #         f"Branch with id = {id} does not exist in this coffee shop"
+    #     )
 
     # check if the branch belongs to this coffee shop
-    if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
+    found_branch = find_by_id_and_shop_id(db=db, id=id, coffee_shop_id=coffee_shop_id)
+    if not found_branch:
         raise ShopsAppException(
             f"Branch with id = {id} does not exist in this coffee shop"
         )
