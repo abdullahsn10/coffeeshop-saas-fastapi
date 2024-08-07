@@ -1,1 +1,0 @@
-from shops_app.exceptions.exception import *
