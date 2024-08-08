@@ -175,6 +175,35 @@ def update(
     return user_instance
 
 
+def check_if_user_became_admin(
+    user_id: int,
+    new_role: UserRole,
+    db: Session,
+    coffee_shop_id: int,
+) -> None:
+    """
+    This helper function used to check if the user became admin after updating/creating
+    and attach all branches of a specific coffee shop to the user if he became admin.
+    *Args:
+        user_id (int): The user id.
+        new_role (UserRole): The new role of the user.
+        db (Session): A database session.
+        coffee_shop_id (int): The coffee shop id to attach branches to the admin.
+    """
+    # check if the user was an admin before
+    was_an_admin = (
+        db.query(models.BranchUser)
+        .filter(models.BranchUser.manager_id == user_id)
+        .first()
+        is not None
+    )
+
+    if new_role == UserRole.ADMIN and not was_an_admin:
+        coffee_shop.attach_all_branches_to_admin(
+            id=coffee_shop_id, manager_id=user_id, db=db
+        )
+
+
 def validate_and_create_or_update(
     request: Union[schemas.UserPOSTRequestBody, schemas.UserPUTRequestBody],
     db: Session,
@@ -209,8 +238,6 @@ def validate_and_create_or_update(
             raise ShopsAppAlreadyExistsException(
                 "User with this email or phone number already exists"
             )
-        # get the user role before updating
-        before_update_user_role = find_by_id(user_id=user_id, db=db).role
     else:
         # verify email and phone uniqueness (Create case)
         if is_exists_by_email(email=request.email, db=db) or is_exists_by_phone(
@@ -219,7 +246,6 @@ def validate_and_create_or_update(
             raise ShopsAppAlreadyExistsException(
                 "User with this email or phone number already exists"
             )
-        before_update_user_role = None
 
     if creation:
         # create the user
@@ -239,17 +265,63 @@ def validate_and_create_or_update(
     else:
         # update the user
         user_instance = update(request=request, db=db, id=user_id)
-    # check if the created/updated user is admin, then attach all branches to
-    # be managed by him
-    # if the user is admin and the role was admin before updating, then do not
-    # attach branches to him again
-    if (
-        user_instance.role == UserRole.ADMIN
-        and before_update_user_role != UserRole.ADMIN
-    ):
-        coffee_shop.attach_all_branches_to_admin(
-            id=admin_coffee_shop_id, manager_id=user_instance.id, db=db
-        )
+
+    check_if_user_became_admin(
+        user_id=user_instance.id,
+        db=db,
+        new_role=user_instance.role,
+        coffee_shop_id=admin_coffee_shop_id,
+    )
+
+    return schemas.UserCredentialsInResponse(
+        email=user_instance.email, phone_no=user_instance.phone_no
+    )
+
+
+def validate_and_partial_update(
+    request: schemas.UserPATCHRequestBody,
+    db: Session,
+    admin_coffee_shop_id: int,
+    creation: bool = True,
+    user_id: int = None,
+) -> schemas.UserCredentialsInResponse:
+    """
+    This helper function used to validate and partially update a new user.
+    *Args:
+        request (UserPATCHRequestBody): The user details to partially update.
+        db (Session): A database session.
+        admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
+    *Returns:
+        UserCredentialsInResponse: The updated user credentials.
+    """
+    if request.branch_id:
+        # verify that the branch id belongs to the admin coffee shop
+        if not coffee_shop.has_branch(
+            id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
+        ):
+            raise ShopsAppException("Branch does not belong to your coffee shop")
+    # verify email and phone uniqueness and exclude the user to be updated
+    # from the check
+    if request.phone_no:
+        if is_exists_by_phone(
+            phone_no=request.phone_no, db=db, excluded_user_id=user_id
+        ):
+            raise ShopsAppAlreadyExistsException(
+                "User with this phone number already exists"
+            )
+    if request.email:
+        if is_exists_by_email(email=request.email, db=db, excluded_user_id=user_id):
+            raise ShopsAppAlreadyExistsException("User with this email already exists")
+
+    # update the user
+    user_instance = update(request=request, db=db, id=user_id)
+
+    check_if_user_became_admin(
+        user_id=user_instance.id,
+        db=db,
+        new_role=user_instance.role,
+        coffee_shop_id=admin_coffee_shop_id,
+    )
 
     return schemas.UserCredentialsInResponse(
         email=user_instance.email, phone_no=user_instance.phone_no
