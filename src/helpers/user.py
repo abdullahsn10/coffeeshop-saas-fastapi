@@ -175,7 +175,7 @@ def update(
     return user_instance
 
 
-def check_if_user_became_admin(
+def check_if_user_became_admin_then_attach_all_branches_to_him(
     user_id: int,
     new_role: UserRole,
     db: Session,
@@ -266,7 +266,7 @@ def validate_and_create_or_update(
         # update the user
         user_instance = update(request=request, db=db, id=user_id)
 
-    check_if_user_became_admin(
+    check_if_user_became_admin_then_attach_all_branches_to_him(
         user_id=user_instance.id,
         db=db,
         new_role=user_instance.role,
@@ -316,7 +316,7 @@ def validate_and_partial_update(
     # update the user
     user_instance = update(request=request, db=db, id=user_id)
 
-    check_if_user_became_admin(
+    check_if_user_became_admin_then_attach_all_branches_to_him(
         user_id=user_instance.id,
         db=db,
         new_role=user_instance.role,
