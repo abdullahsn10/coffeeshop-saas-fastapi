@@ -93,7 +93,31 @@ def find_by_id(user_id: int, db: Session) -> models.User:
     *Returns:
         the User instance if exists, None otherwise.
     """
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return (
+        db.query(models.User)
+        .filter(models.User.id == user_id, models.User.deleted == False)
+        .first()
+    )
+
+
+def find_all_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
+    """
+    This helper function used to get all users in a specific coffee shop.
+    *Args:
+        db (Session): A database session.
+        coffee_shop_id (int): The coffee shop id.
+    *Returns:
+        list[User]: The list of all users.
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+            models.User.deleted == False,
+        )
+        .all()
+    )
 
 
 def get_branch_id(user_id: int, db: Session) -> int:

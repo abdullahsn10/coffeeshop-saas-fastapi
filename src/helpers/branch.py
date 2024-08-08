@@ -65,7 +65,9 @@ def has_users(branch_id: int, db: Session) -> bool:
         True if the branch has users, False otherwise
     """
     return (
-        db.query(models.User).filter(models.User.branch_id == branch_id).scalar()
+        db.query(models.User)
+        .filter(models.User.branch_id == branch_id, models.User.deleted == False)
+        .scalar()
         is not None
     )
 

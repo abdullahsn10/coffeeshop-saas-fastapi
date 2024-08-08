@@ -40,5 +40,5 @@ def check_if_user_belongs_to_this_coffee_shop(
         id=coffee_shop_id, branch_id=user_instance.branch_id, db=db
     ):
         raise ShopsAppUnAuthorizedException(
-            "You are not authorized to make changes on this user"
+            "You are not authorized to show or make changes on this user"
         )

@@ -106,3 +106,45 @@ def partial_update_user_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+@router.get("/", response_model=list[schemas.UserGETResponse])
+def get_all_users_endpoint(
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
+):
+    """
+    GET endpoint to get all users
+    """
+    try:
+        return user.find_all_in_this_shop(
+            db=db, coffee_shop_id=current_user.coffee_shop_id
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.get("/{user_id}", response_model=schemas.UserGETResponse)
+def get_user_endpoint(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
+):
+    """
+    GET endpoint to get a user
+    """
+    try:
+        check_if_user_belongs_to_this_coffee_shop(
+            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
+        )
+        return user.find_by_id(db=db, user_id=user_id)
+    except ShopsAppException as se:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
+    except ShopsAppUnAuthorizedException as ua:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

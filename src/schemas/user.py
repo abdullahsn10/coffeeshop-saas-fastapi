@@ -79,3 +79,20 @@ class UserPATCHRequestBody(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserGETResponse(BaseModel):
+    """
+    Pydantic schema for User GET response
+    """
+
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    phone_no: str
+    role: UserRole
+    branch_id: int
+
+    class Config:
+        orm_mode = True
