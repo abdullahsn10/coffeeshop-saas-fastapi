@@ -12,12 +12,17 @@ from src.settings.database import get_db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> schemas.TokenData:
+def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)]
+) -> schemas.TokenData:
     """
-    This function will return the current user based on the token data
-    :param token: token to verify
-    :param db: sqlalchemy session
-    :return: the current user data from the token
+    This function will return the current user based on the token data after
+    verifying his/her token
+    *Args:
+        token: the token obtained as a dependency from oauth2_schem
+    *Returns:
+        Token Data contains the user's data extracted from the token if it
+        is valid
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -31,16 +36,19 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> schemas.T
 def require_role(allowed_roles: list[UserRole]):
     """
     This function will check if the current user has the necessary role to access the route
-    :param allowed_roles: list of roles that are allowed to access the route
-    :return: the current user data if the role is allowed, else raise an exception
+    *Args:
+        allowed_roles: a list of allowed roles that the current user must have to access
+    *Returns:
+        The user data extracted from the token if the user has the proper role,
+        raise exception otherwise.
     """
+
     def role_checker(current_user: schemas.TokenData = Depends(get_current_user)):
         if current_user.role not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have the necessary permissions"
+                detail="You do not have the necessary permissions",
             )
         return current_user
 
     return role_checker
-

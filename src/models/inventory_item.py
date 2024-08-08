@@ -1,13 +1,21 @@
 from src.settings.database import Base
-from sqlalchemy import (Column, Integer, String, ForeignKey,
-                        DOUBLE_PRECISION, Boolean, DATE)
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    DOUBLE_PRECISION,
+    Boolean,
+    DATE,
+)
 
 
 class InventoryItem(Base):
     """
     SQLAlchemy model for inventory items table
     """
-    __tablename__ = 'inventory_item'
+
+    __tablename__ = "inventory_item"
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -17,6 +25,4 @@ class InventoryItem(Base):
     available_quantity = Column(Integer, nullable=False)
     deleted = Column(Boolean, default=False)
     # relationship with users (inventory manager (admin))
-    inventory_manager_id = Column(Integer, ForeignKey('user.id'))
-
-
+    inventory_manager_id = Column(Integer, ForeignKey("user.id"))

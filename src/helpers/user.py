@@ -22,11 +22,15 @@ def is_exists_by_phone(phone_no: str, db: Session) -> bool:
     *Returns:
         bool: True if the user exists, False otherwise.
     """
-    return db.query(models.User).filter(models.User.phone_no == phone_no).first() is not None
+    return (
+        db.query(models.User).filter(models.User.phone_no == phone_no).first()
+        is not None
+    )
 
 
-def create(request: schemas.UserBase, role: models.UserRole, branch_id: int,
-           db: Session) -> models.User:
+def create(
+    request: schemas.UserBase, role: models.UserRole, branch_id: int, db: Session
+) -> models.User:
     """
     This helper function used to create a new user.
     *Args:
@@ -46,7 +50,7 @@ def create(request: schemas.UserBase, role: models.UserRole, branch_id: int,
         phone_no=request.phone_no,
         password=request.password,
         role=role,
-        branch_id=branch_id
+        branch_id=branch_id,
     )
     db.add(created_user_instance)
     db.commit()
@@ -65,3 +69,23 @@ def get_by_email(email: str, db: Session) -> models.User:
         the User instance if exists, None otherwise.
     """
     return db.query(models.User).filter(models.User.email == email).first()
+
+
+def get_coffee_shop_id(db: Session, user_id: int) -> int:
+    """
+    This helper function will be used to get the coffee shop id of the user
+    *Args:
+        db (Session): A database session.
+        user_id (int): The user id.
+    *Returns:
+        the coffee shop id of the user
+    """
+    # join query to get coffee shop id
+    result = (
+        db.query(models.CoffeeShop.id)
+        .filter(models.User.id == user_id)
+        .filter(models.User.branch_id == models.Branch.id)
+        .filter(models.Branch.coffee_shop_id == models.CoffeeShop.id)
+        .first()
+    )
+    return result[0]
