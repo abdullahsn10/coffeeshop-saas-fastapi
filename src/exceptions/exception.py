@@ -16,3 +16,13 @@ class ShopsAppUnAuthorizedException(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
+
+
+class ShopsAppDeletionFailException(Exception):
+    """
+    Custom exception class for ShopsApp Deletion Fail Exception
+    """
+
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)

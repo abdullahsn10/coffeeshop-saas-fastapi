@@ -126,6 +126,8 @@ def delete_branch_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+    except ShopsAppDeletionFailException as df:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(df))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)

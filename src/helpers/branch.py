@@ -43,6 +43,33 @@ def get_coffee_shop_id(branch_id: int, db: Session) -> int:
     return branch.coffee_shop_id
 
 
+def get_all_users(branch_id: int, db: Session) -> list[models.User]:
+    """
+    This helper function will be used to get all users in a branch
+    *Args:
+        branch_id (int): branch id
+        db (Session): database session
+    *Returns:
+        list of users in the branch
+    """
+    return db.query(models.User).filter(models.User.branch_id == branch_id).all()
+
+
+def has_users(branch_id: int, db: Session) -> bool:
+    """
+    This helper function will be used to check if a branch has users
+    *Args:
+        branch_id (int): branch id
+        db (Session): database session
+    *Returns:
+        True if the branch has users, False otherwise
+    """
+    return (
+        db.query(models.User).filter(models.User.branch_id == branch_id).scalar()
+        is not None
+    )
+
+
 def find_by_id(db: Session, id: int) -> models.Branch:
     """
     This helper function will be used to find a branch by id
@@ -98,21 +125,6 @@ def update(
         the updated branch
     """
 
-    # # check coffee_shop exists, branch exits
-    # if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-    #     raise ShopsAppException(
-    #         f"Coffee Shop with id = {coffee_shop_id} does not exist"
-    #     )
-    #
-    # found_branch = find_by_id(db=db, id=id)
-    # if not found_branch:
-    #     raise ShopsAppException(f"Branch with id = {id} does not exist")
-    #
-    # if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
-    #     raise ShopsAppException(
-    #         f"Branch with id = {id} does not exist in this coffee shop"
-    #     )
-
     # check if the branch belongs to this coffee shop
     found_branch = find_by_id_and_shop_id(db=db, id=id, coffee_shop_id=coffee_shop_id)
     if not found_branch:
@@ -143,21 +155,6 @@ def delete(db: Session, id: int, coffee_shop_id: int) -> dict[str, str]:
         a dict representation of the deleted branch
     """
 
-    # # check coffee_shop exists, branch exits
-    # if not coffee_shop.find_by_id(db=db, id=coffee_shop_id):
-    #     raise ShopsAppException(
-    #         f"Coffee Shop with id = {coffee_shop_id} does not exist"
-    #     )
-    #
-    # found_branch = find_by_id(db=db, id=id)
-    # if not found_branch:
-    #     raise ShopsAppException(f"Branch with id = {id} does not exist")
-    #
-    # if get_coffee_shop_id(db=db, branch_id=found_branch.id) != coffee_shop_id:
-    #     raise ShopsAppException(
-    #         f"Branch with id = {id} does not exist in this coffee shop"
-    #     )
-
     # check if the branch belongs to this coffee shop
     found_branch = find_by_id_and_shop_id(db=db, id=id, coffee_shop_id=coffee_shop_id)
     if not found_branch:
@@ -165,6 +162,11 @@ def delete(db: Session, id: int, coffee_shop_id: int) -> dict[str, str]:
             f"Branch with id = {id} does not exist in this coffee shop"
         )
 
+    # check if the branch has users
+    if has_users(branch_id=id, db=db):
+        raise ShopsAppDeletionFailException(
+            "Branch has users, please delete them first"
+        )
     found_branch.deleted = True
     db.commit()
     return {"detail": "Branch deleted successfully"}
