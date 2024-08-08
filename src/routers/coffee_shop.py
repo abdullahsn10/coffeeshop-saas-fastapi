@@ -59,8 +59,8 @@ def create_branch_endpoint(
         created_branch = branch.create(
             request=request, coffee_shop_id=coffee_shop_id, db=db
         )
-        branch_user_relationship = branch_user.create(
-            manager_id=current_user.id, branch_id=created_branch.id, db=db
+        coffee_shop.attach_branch_to_all_admins(
+            coffee_shop_id=coffee_shop_id, branch_id=created_branch.id, db=db
         )
         return created_branch
     except ShopsAppException as se:

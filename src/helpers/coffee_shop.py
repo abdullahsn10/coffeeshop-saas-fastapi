@@ -94,6 +94,26 @@ def get_all_branches(id: int, db: Session) -> list[models.Branch]:
     return db.query(models.Branch).filter(models.Branch.coffee_shop_id == id).all()
 
 
+def get_all_admins(id: int, db: Session) -> list[models.User]:
+    """
+    This helper function used to get all admins of a coffee shop
+    *Args:
+        id (int): coffee shop id
+        db (Session): database session
+    *Returns:
+        list[User]: List of admins
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == id,
+            models.User.role == models.UserRole.ADMIN,
+        )
+        .all()
+    )
+
+
 def attach_all_branches_to_admin(id: int, manager_id: int, db: Session) -> None:
     """
     This helper function used to attach all branches to a manager
@@ -105,3 +125,18 @@ def attach_all_branches_to_admin(id: int, manager_id: int, db: Session) -> None:
     branches = get_all_branches(id=id, db=db)
     for branch in branches:
         branch_user.create(branch_id=branch.id, manager_id=manager_id, db=db)
+
+
+def attach_branch_to_all_admins(
+    coffee_shop_id: int, branch_id: int, db: Session
+) -> None:
+    """
+    This helper function used to attach a branch to all admins of a coffee shop
+    *Args:
+        coffee_shop_id (int): coffee shop id
+        branch_id (int): branch id
+        db (Session): database session
+    """
+    admins = get_all_admins(id=coffee_shop_id, db=db)
+    for admin in admins:
+        branch_user.create(branch_id=branch_id, manager_id=admin.id, db=db)
