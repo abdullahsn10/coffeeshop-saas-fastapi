@@ -40,3 +40,15 @@ class UserCredentialsInResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserPOSTRequestBody(UserBase):
+    """
+    Pydantic schema for User POST request body
+    """
+
+    role: UserRole
+    branch_id: int
+
+    class Config:
+        orm_mode = True

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from src import schemas, models
 from src.exceptions.exception import *
-from src.helpers import user
+from src.helpers import user, branch_user
 
 
 def create(request: schemas.CoffeeShopBase, db: Session) -> models.CoffeeShop:
@@ -58,3 +58,50 @@ def update(request: schemas.CoffeeShopBase, db: Session, id: int) -> models.Coff
     db.commit()
     db.refresh(found_coffee_shop)
     return found_coffee_shop
+
+
+def has_branch(id: int, branch_id: int, db: Session) -> bool:
+    """
+    This helper function used to check if a coffee shop has a specific branch
+    *Args:
+        id (int): coffee shop id
+        branch_id (int): branch id
+        db (Session): database session
+    *Returns:
+        bool: True if the coffee shop has the branch, False otherwise
+    """
+    return (
+        db.query(models.Branch)
+        .filter(
+            models.Branch.id == branch_id,
+            models.Branch.deleted == False,
+            models.Branch.coffee_shop_id == id,
+        )
+        .first()
+        is not None
+    )
+
+
+def get_all_branches(id: int, db: Session) -> list[models.Branch]:
+    """
+    This helper function used to get all branches of a coffee shop
+    *Args:
+        id (int): coffee shop id
+        db (Session): database session
+    *Returns:
+        list[Branch]: List of branches
+    """
+    return db.query(models.Branch).filter(models.Branch.coffee_shop_id == id).all()
+
+
+def attach_all_branches_to_admin(id: int, manager_id: int, db: Session) -> None:
+    """
+    This helper function used to attach all branches to a manager
+    *Args:
+        id (int): coffee shop id
+        manager_id (int): manager id
+        db (Session): database session
+    """
+    branches = get_all_branches(id=id, db=db)
+    for branch in branches:
+        branch_user.create(branch_id=branch.id, manager_id=manager_id, db=db)
