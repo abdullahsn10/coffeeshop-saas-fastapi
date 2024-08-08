@@ -35,10 +35,7 @@ def signup(
     # create coffee shop, branch and admin
     created_coffee_shop = coffee_shop.create(request=coffee_shop_instance, db=db)
     created_branch = branch.create(
-        request=branch_instance,
-        db=db,
-        coffee_shop_id=created_coffee_shop.id,
-        user_coffee_shop_id=created_coffee_shop.id,
+        request=branch_instance, db=db, coffee_shop_id=created_coffee_shop.id
     )
     created_admin_user = user.create(
         request=admin_user_instance,
