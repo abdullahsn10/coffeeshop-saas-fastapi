@@ -52,3 +52,27 @@ class UserPOSTRequestBody(UserBase):
 
     class Config:
         orm_mode = True
+
+
+class UserPUTRequestBody(UserPOSTRequestBody):
+    """
+    Pydantic schema for User PUT request body
+    """
+
+    class Config:
+        orm_mode = True
+
+
+class UserPATCHRequestBody(BaseModel):
+    """
+    Pydantic schema for User PATCH request body
+    """
+
+    first_name: str = None
+    last_name: str = None
+    email: str = None
+    phone_no: str = None
+    password: str = None
+
+    class Config:
+        orm_mode = True
