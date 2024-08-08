@@ -43,11 +43,8 @@ def signup(
         role=UserRole.ADMIN,
         branch_id=created_branch.id,
     )
-    relationship_branch_user_instance = schemas.BranchUserBase(
-        branch_id=created_branch.id, manager_id=created_admin_user.id
-    )
     created_branch_admin_relationship = branch_user.create(
-        request=relationship_branch_user_instance, db=db
+        branch_id=created_branch.id, manager_id=created_admin_user.id, db=db
     )
     return schemas.UserCredentialsInResponse(
         email=created_admin_user.email,

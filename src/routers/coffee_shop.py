@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from src import schemas, models
 from src.security.oauth2 import require_role
 from src.settings.database import get_db
-from src.helpers import coffee_shop, branch
+from src.helpers import coffee_shop, branch, branch_user
 from src.exceptions.exception import *
 from src.utils.control_access import check_if_user_can_access_shop
 
@@ -56,7 +56,13 @@ def create_branch_endpoint(
             target_coffee_shop_id=coffee_shop_id,
         )
         response.status_code = status.HTTP_201_CREATED
-        return branch.create(request=request, coffee_shop_id=coffee_shop_id, db=db)
+        created_branch = branch.create(
+            request=request, coffee_shop_id=coffee_shop_id, db=db
+        )
+        branch_user_relationship = branch_user.create(
+            manager_id=current_user.id, branch_id=created_branch.id, db=db
+        )
+        return created_branch
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:
