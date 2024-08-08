@@ -144,7 +144,7 @@ def get_coffee_shop_id(db: Session, user_id: int) -> int:
 
 def update(
     id: int,
-    request: [schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
+    request: Union[schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
     db: Session,
 ) -> models.User:
     """
