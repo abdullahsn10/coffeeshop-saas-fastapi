@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from src import schemas, models
 from src.security.oauth2 import require_role
@@ -15,10 +15,10 @@ router = APIRouter(
 
 @router.put("/{coffee_shop_id}", response_model=schemas.CoffeeShopBase)
 def update_coffee_shop_endpoint(
-    coffee_shop_id: int,
-    request: schemas.CoffeeShopBase,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+        coffee_shop_id: int,
+        request: schemas.CoffeeShopBase,
+        db: Session = Depends(get_db),
+        current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
     PUT endpoint to fully update a specific coffee shop
@@ -41,10 +41,11 @@ def update_coffee_shop_endpoint(
 
 @router.post("/{coffee_shop_id}/branches", response_model=schemas.BranchResponseBody)
 def create_branch_endpoint(
-    coffee_shop_id: int,
-    request: schemas.BranchBase,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+        coffee_shop_id: int,
+        request: schemas.BranchBase,
+        response: Response,
+        db: Session = Depends(get_db),
+        current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
     POST endpoint to create a branch for a specific coffee shop
@@ -54,6 +55,7 @@ def create_branch_endpoint(
             user_coffee_shop_id=current_user.coffee_shop_id,
             target_coffee_shop_id=coffee_shop_id,
         )
+        response.status_code = status.HTTP_201_CREATED
         return branch.create(request=request, coffee_shop_id=coffee_shop_id, db=db)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
@@ -69,11 +71,11 @@ def create_branch_endpoint(
     "/{coffee_shop_id}/branches/{branch_id}", response_model=schemas.BranchResponseBody
 )
 def update_branch_endpoint(
-    coffee_shop_id: int,
-    branch_id: int,
-    request: schemas.BranchBase,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+        coffee_shop_id: int,
+        branch_id: int,
+        request: schemas.BranchBase,
+        db: Session = Depends(get_db),
+        current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
     PUT endpoint to update a specific branch for a specific coffee shop
@@ -99,10 +101,10 @@ def update_branch_endpoint(
 
 @router.delete("/{coffee_shop_id}/branches/{branch_id}", response_model=dict[str, str])
 def delete_branch_endpoint(
-    coffee_shop_id: int,
-    branch_id: int,
-    db: Session = Depends(get_db),
-    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+        coffee_shop_id: int,
+        branch_id: int,
+        db: Session = Depends(get_db),
+        current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
     """
     DELETE endpoint to delete a branch for a specific coffee shop
