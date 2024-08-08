@@ -18,7 +18,7 @@ def signup_endpoint(
     db: Session = Depends(get_db),
 ):
     """
-    This endpoint is used to sign up a new coffe shop along with admin.
+    POST endpoint to signup a new coffee shop into the system, also create an admin user for the registered coffee shop
     """
     try:
         response.status_code = status.HTTP_201_CREATED
@@ -32,11 +32,11 @@ def signup_endpoint(
 
 
 @router.post("/login", response_model=schemas.Token)
-def login(
+def login_endpoint(
     request: schemas.LoginRequestBody, response: Response, db: Session = Depends(get_db)
 ):
     """
-    This endpoint is used to login a user into the system
+    POST endpoint to login a user into the system
     """
     try:
         response.status_code = status.HTTP_200_OK
