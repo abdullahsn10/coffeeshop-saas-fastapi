@@ -109,6 +109,7 @@ def update_branch_endpoint(
 def delete_branch_endpoint(
     coffee_shop_id: int,
     branch_id: int,
+    response: Response,
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
@@ -121,7 +122,8 @@ def delete_branch_endpoint(
             user_coffee_shop_id=current_user.coffee_shop_id,
             target_coffee_shop_id=coffee_shop_id,
         )
-        return branch.delete(db=db, id=branch_id, coffee_shop_id=coffee_shop_id)
+        response.status_code = status.HTTP_204_NO_CONTENT
+        branch.delete(db=db, id=branch_id, coffee_shop_id=coffee_shop_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:

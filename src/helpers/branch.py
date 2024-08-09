@@ -67,7 +67,7 @@ def has_users(branch_id: int, db: Session) -> bool:
     return (
         db.query(models.User)
         .filter(models.User.branch_id == branch_id, models.User.deleted == False)
-        .scalar()
+        .first()
         is not None
     )
 
@@ -145,7 +145,7 @@ def update(
     return found_branch
 
 
-def delete(db: Session, id: int, coffee_shop_id: int) -> dict[str, str]:
+def delete(db: Session, id: int, coffee_shop_id: int) -> None:
     """
     This helper function will be used to delete a branch
     *Args:
@@ -171,4 +171,3 @@ def delete(db: Session, id: int, coffee_shop_id: int) -> dict[str, str]:
         )
     found_branch.deleted = True
     db.commit()
-    return {"detail": "Branch deleted successfully"}

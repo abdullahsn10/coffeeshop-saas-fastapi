@@ -41,7 +41,7 @@ def create_user_endpoint(
         )
 
 
-@router.put("/{user_id}")
+@router.put("/{user_id}", response_model=schemas.UserCredentialsInResponse)
 def full_update_user_endpoint(
     user_id: int,
     request: schemas.UserPUTRequestBody,
@@ -75,7 +75,7 @@ def full_update_user_endpoint(
         )
 
 
-@router.patch("/{user_id}")
+@router.patch("/{user_id}", response_model=schemas.UserCredentialsInResponse)
 def partial_update_user_endpoint(
     user_id: int,
     request: schemas.UserPATCHRequestBody,
@@ -140,6 +140,32 @@ def get_user_endpoint(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
         return user.find_by_id(db=db, user_id=user_id)
+    except ShopsAppException as se:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
+    except ShopsAppUnAuthorizedException as ua:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.delete("/{user_id}")
+def delete_user_endpoint(
+    user_id: int,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
+):
+    """
+    DELETE endpoint to delete a user
+    """
+    try:
+        check_if_user_belongs_to_this_coffee_shop(
+            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
+        )
+        response.status_code = status.HTTP_204_NO_CONTENT
+        user.delete_by_id(db=db, user_id=user_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
     except ShopsAppUnAuthorizedException as ua:

@@ -350,3 +350,18 @@ def validate_and_partial_update(
     return schemas.UserCredentialsInResponse(
         email=user_instance.email, phone_no=user_instance.phone_no
     )
+
+
+def delete_by_id(user_id: int, db: Session) -> None:
+    """
+    This helper function used to delete a user by id.
+    *Args:
+        user_id (int): The user id.
+        db (Session): A database session.
+    """
+    user_instance = find_by_id(user_id=user_id, db=db)
+    if not user_instance:
+        raise ShopsAppException(f"User with id {user_id} could not be found")
+    user_instance.deleted = True
+    db.commit()
+    db.refresh(user_instance)
