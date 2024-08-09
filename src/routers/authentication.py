@@ -23,7 +23,7 @@ def signup_endpoint(
     try:
         response.status_code = status.HTTP_201_CREATED
         return authentication.signup(request=request, db=db)
-    except ShopsAppException as se:
+    except ShopsAppAlreadyExistsException as se:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(se))
     except Exception as e:
         raise HTTPException(

@@ -30,7 +30,9 @@ def signup(
     if user.is_exists_by_email(
         email=admin_user_instance.email, db=db
     ) or user.is_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
-        raise ShopsAppException("User with this email or phone number already exists.")
+        raise ShopsAppAlreadyExistsException(
+            "User with this email or phone number already exists."
+        )
 
     # create coffee shop, branch and admin
     created_coffee_shop = coffee_shop.create(request=coffee_shop_instance, db=db)

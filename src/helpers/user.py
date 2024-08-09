@@ -249,7 +249,9 @@ def validate_and_create_or_update(
     if not coffee_shop.has_branch(
         id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
     ):
-        raise ShopsAppException("Branch does not belong to your coffee shop")
+        raise ShopsAppException(
+            f"Branch with id={request.branch_id} does not exist in your coffee shop"
+        )
 
     if user_id is not None:
         # verify email and phone uniqueness and exclude the user to be updated

@@ -1,6 +1,10 @@
 class ShopsAppException(Exception):
     """
     Custom exception class for ShopsApp
+    Can be used to raise exceptions in the application of type:
+    - Not Found Exception
+    - Bad Request Exception
+    - General Exception
     """
 
     def __init__(self, message: str):

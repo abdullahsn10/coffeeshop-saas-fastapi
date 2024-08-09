@@ -109,6 +109,7 @@ def get_all_admins(id: int, db: Session) -> list[models.User]:
             models.User.branch_id == models.Branch.id,
             models.Branch.coffee_shop_id == id,
             models.User.role == models.UserRole.ADMIN,
+            models.User.deleted == False,
         )
         .all()
     )
