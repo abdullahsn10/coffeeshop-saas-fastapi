@@ -3,7 +3,6 @@ from src import schemas, models
 from src.utils.hashing import Hash
 from src.exceptions.exception import *
 from src.helpers import coffee_shop
-from src.models.user import UserRole
 from typing import Union
 
 
@@ -11,11 +10,11 @@ def is_user_exists_by_email(
     email: str, db: Session, excluded_user_id: int = None
 ) -> bool:
     """
-    This helper function used to check if a user exists by email.
+    This helper function used to check if a user exists by email.\n
     *Args:
-        email (str): The email to check.
-        db (Session): A database session.
-        excluded_user_id (int): The user id to exclude from the check.
+        email (str): The email to check.\n
+        db (Session): A database session.\n
+        excluded_user_id (int): The user id to exclude from the check.\n
     *Returns:
         bool: True if the user exists, False otherwise.
     """
@@ -33,11 +32,11 @@ def is_user_exists_by_phone(
     phone_no: str, db: Session, excluded_user_id: int = None
 ) -> bool:
     """
-    This helper function used to check if a user exists by phone number.
+    This helper function used to check if a user exists by phone number.\n
     *Args:
-        phone_no (str): The email to check.
-        db (Session): A database session.
-        excluded_user_id (int): The user id to exclude from the check.
+        phone_no (str): The email to check.\n
+        db (Session): A database session.\n
+        excluded_user_id (int): The user id to exclude from the check.\n
     *Returns:
         bool: True if the user exists, False otherwise.
     """
@@ -88,10 +87,10 @@ def create_user(
 
 def find_user_by_id(user_id: int, db: Session) -> models.User:
     """
-    This helper function used to get a user by id.
+    This helper function used to get a user by id.\n
     *Args:
-        user_id (int): The user id.
-        db (Session): A database session.
+        user_id (int): The user id.\n
+        db (Session): A database session.\n
     *Returns:
         the User instance if exists, None otherwise.
     """
@@ -104,10 +103,10 @@ def find_user_by_id(user_id: int, db: Session) -> models.User:
 
 def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
     """
-    This helper function used to get all users in a specific coffee shop.
+    This helper function used to get all users in a specific coffee shop.\n
     *Args:
-        db (Session): A database session.
-        coffee_shop_id (int): The coffee shop id.
+        db (Session): A database session.\n
+        coffee_shop_id (int): The coffee shop id.\n
     *Returns:
         list[User]: The list of all users.
     """
@@ -122,12 +121,12 @@ def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models
     )
 
 
-def get_branch_id(user_id: int, db: Session) -> int:
+def get_branch_id_of_user(user_id: int, db: Session) -> int:
     """
-    This helper function used to get the branch id of the user.
+    This helper function used to get the branch id of the user.\n
     *Args:
-        user_id (int): The user id.
-        db (Session): A database session.
+        user_id (int): The user id.\n
+        db (Session): A database session.\n
     *Returns:
         the branch id of the user
     """
@@ -148,12 +147,12 @@ def get_user_by_email(email: str, db: Session) -> models.User:
     return db.query(models.User).filter(models.User.email == email).first()
 
 
-def get_coffee_shop_id(db: Session, user_id: int) -> int:
+def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
     """
-    This helper function will be used to get the coffee shop id of the user
+    This helper function will be used to get the coffee shop id of the user\n
     *Args:
-        db (Session): A database session.
-        user_id (int): The user id.
+        db (Session): A database session.\n
+        user_id (int): The user id.\n
     *Returns:
         the coffee shop id of the user
     """
@@ -174,11 +173,11 @@ def update_user(
     db: Session,
 ) -> models.User:
     """
-    This helper function used to update a user.
+    This helper function used to update a user.\n
     *Args:
-        request (UserPUTRequestBody/ UserPATCHRequestBody): The user details to update.
-        db (Session): A database session.
-        user_id (int): The user id to update.
+        request (UserPUTRequestBody/ UserPATCHRequestBody): The user details to update.\n
+        db (Session): A database session.\n
+        user_id (int): The user id to update.\n
     *Returns:
         User: The updated user.
     """
@@ -201,35 +200,6 @@ def update_user(
     db.commit()
     db.refresh(user_instance)
     return user_instance
-
-
-def check_if_user_became_admin_then_attach_all_branches_to_him(
-    user_id: int,
-    new_role: UserRole,
-    db: Session,
-    coffee_shop_id: int,
-) -> None:
-    """
-    This helper function used to check if the user became admin after updating/creating
-    and attach all branches of a specific coffee shop to the user if he became admin.
-    *Args:
-        user_id (int): The user id.
-        new_role (UserRole): The new role of the user.
-        db (Session): A database session.
-        coffee_shop_id (int): The coffee shop id to attach branches to the admin.
-    """
-    # check if the user was an admin before
-    was_an_admin = (
-        db.query(models.BranchUser)
-        .filter(models.BranchUser.manager_id == user_id)
-        .first()
-        is not None
-    )
-
-    if new_role == UserRole.ADMIN and not was_an_admin:
-        coffee_shop.attach_all_branches_to_admin(
-            id=coffee_shop_id, manager_id=user_id, db=db
-        )
 
 
 def validate_and_create_or_update(
@@ -299,13 +269,6 @@ def validate_and_create_or_update(
         # update the user
         user_instance = update_user(request=request, db=db, user_id=user_id)
 
-    check_if_user_became_admin_then_attach_all_branches_to_him(
-        user_id=user_instance.id,
-        db=db,
-        new_role=user_instance.role,
-        coffee_shop_id=admin_coffee_shop_id,
-    )
-
     return schemas.UserCredentialsInResponse(
         email=user_instance.email, phone_no=user_instance.phone_no
     )
@@ -354,13 +317,6 @@ def validate_and_partial_update(
     # update the user
     user_instance = update_user(request=request, db=db, user_id=user_id)
 
-    check_if_user_became_admin_then_attach_all_branches_to_him(
-        user_id=user_instance.id,
-        db=db,
-        new_role=user_instance.role,
-        coffee_shop_id=admin_coffee_shop_id,
-    )
-
     return schemas.UserCredentialsInResponse(
         email=user_instance.email, phone_no=user_instance.phone_no
     )
@@ -368,10 +324,10 @@ def validate_and_partial_update(
 
 def delete_user_by_id(user_id: int, db: Session) -> None:
     """
-    This helper function used to delete a user by id.
+    This helper function used to delete a user by id.\n
     *Args:
-        user_id (int): The user id.
-        db (Session): A database session.
+        user_id (int): The user id.\n
+        db (Session): A database session.\n
     """
     user_instance = find_user_by_id(user_id=user_id, db=db)
     if not user_instance:

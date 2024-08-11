@@ -1,5 +1,4 @@
 from typing import Dict
-
 from src import schemas, models
 from sqlalchemy.orm import Session
 from src.exceptions.exception import *
@@ -36,10 +35,10 @@ def create_branch(
 
 def get_coffee_shop_id(branch_id: int, db: Session) -> int:
     """
-    This helper function will be used to get the coffee shop id from the branch id
+    This helper function will be used to get the coffee shop id from the branch id\n
     *Args:
-        branch_id (int): branch id
-        db (Session): database session
+        branch_id (int): branch id\n
+        db (Session): database session\n
     *Returns:
         coffee shop id
     """
@@ -49,10 +48,10 @@ def get_coffee_shop_id(branch_id: int, db: Session) -> int:
 
 def get_all_users_in_branch(branch_id: int, db: Session) -> list[models.User]:
     """
-    This helper function will be used to get all users in a branch
+    This helper function will be used to get all users in a branch\n
     *Args:
-        branch_id (int): branch id
-        db (Session): database session
+        branch_id (int): branch id\n
+        db (Session): database session\n
     *Returns:
         list of users in the branch
     """
@@ -137,7 +136,7 @@ def update_branch(
     return found_branch
 
 
-def delete_branch(db: Session, branch_id: int, coffee_shop_id: int) -> None:
+def delete_branch_by_id(db: Session, branch_id: int, coffee_shop_id: int) -> None:
     """
     This helper function will be used to delete a branch\n
     *Args:

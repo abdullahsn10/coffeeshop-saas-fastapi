@@ -1,17 +1,17 @@
 from sqlalchemy.orm import Session
 from src import schemas, models
 from src.exceptions.exception import *
-from src.helpers import user, branch_user
+from src.helpers import user
 
 
 def create_coffee_shop(
     request: schemas.CoffeeShopBase, db: Session
 ) -> models.CoffeeShop:
     """
-    This helper function used to create a coffee shop
+    This helper function used to create a coffee shop\n
     *Args:
-        request (CoffeeShopBase): contains coffee shop details
-        db (Session): database session
+        request (CoffeeShopBase): contains coffee shop details\n
+        db (Session): database session\n
     *Returns:
         CoffeeShop: created coffee shop instance
     """
@@ -26,10 +26,10 @@ def create_coffee_shop(
 
 def find_coffee_shop_by_id(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
     """
-    This helper function used to find a coffee shop by id
+    This helper function used to find a coffee shop by id\n
     *Args:
-        db (Session): database session
-        coffee_shop_id (int): coffee shop id
+        db (Session): database session\n
+        coffee_shop_id (int): coffee shop id\n
     *Returns:
         The found coffee shop instance
     """
@@ -75,11 +75,11 @@ def update_coffee_shop(
 
 def is_shop_has_this_branch(coffee_shop_id: int, branch_id: int, db: Session) -> bool:
     """
-    This helper function used to check if a coffee shop has a specific branch
+    This helper function used to check if a coffee shop has a specific branch\n
     *Args:
-        coffee_shop_id (int): coffee shop id
-        branch_id (int): branch id
-        db (Session): database session
+        coffee_shop_id (int): coffee shop id\n
+        branch_id (int): branch id\n
+        db (Session): database session\n
     *Returns:
         bool: True if the coffee shop has the branch, False otherwise
     """
@@ -95,24 +95,30 @@ def is_shop_has_this_branch(coffee_shop_id: int, branch_id: int, db: Session) ->
     )
 
 
-def get_all_branches(id: int, db: Session) -> list[models.Branch]:
+def get_all_branches_in_the_shop(
+    coffee_shop_id: int, db: Session
+) -> list[models.Branch]:
     """
-    This helper function used to get all branches of a coffee shop
+    This helper function used to get all branches of a coffee shop\n
     *Args:
-        id (int): coffee shop id
-        db (Session): database session
+        id (int): coffee shop id\n
+        db (Session): database session\n
     *Returns:
         list[Branch]: List of branches
     """
-    return db.query(models.Branch).filter(models.Branch.coffee_shop_id == id).all()
+    return (
+        db.query(models.Branch)
+        .filter(models.Branch.coffee_shop_id == coffee_shop_id)
+        .all()
+    )
 
 
-def get_all_admins(id: int, db: Session) -> list[models.User]:
+def get_all_admins_in_the_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
     """
-    This helper function used to get all admins of a coffee shop
+    This helper function used to get all admins of a coffee shop\n
     *Args:
-        id (int): coffee shop id
-        db (Session): database session
+        id (int): coffee shop id\n
+        db (Session): database session\n
     *Returns:
         list[User]: List of admins
     """
@@ -120,37 +126,9 @@ def get_all_admins(id: int, db: Session) -> list[models.User]:
         db.query(models.User)
         .filter(
             models.User.branch_id == models.Branch.id,
-            models.Branch.coffee_shop_id == id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
             models.User.role == models.UserRole.ADMIN,
             models.User.deleted == False,
         )
         .all()
     )
-
-
-def attach_all_branches_to_admin(id: int, manager_id: int, db: Session) -> None:
-    """
-    This helper function used to attach all branches to a manager
-    *Args:
-        id (int): coffee shop id
-        manager_id (int): manager id
-        db (Session): database session
-    """
-    branches = get_all_branches(id=id, db=db)
-    for branch in branches:
-        branch_user.create(branch_id=branch.id, manager_id=manager_id, db=db)
-
-
-def attach_branch_to_all_admins(
-    coffee_shop_id: int, branch_id: int, db: Session
-) -> None:
-    """
-    This helper function used to attach a branch to all admins of a coffee shop
-    *Args:
-        coffee_shop_id (int): coffee shop id
-        branch_id (int): branch id
-        db (Session): database session
-    """
-    admins = get_all_admins(id=coffee_shop_id, db=db)
-    for admin in admins:
-        branch_user.create(branch_id=branch_id, manager_id=admin.id, db=db)
