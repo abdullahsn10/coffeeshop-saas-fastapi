@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from src.exceptions.exception import *
 from src.helpers import user, coffee_shop
+from fastapi import status
 
 
 def check_if_user_can_access_shop(user_coffee_shop_id: int, target_coffee_shop_id: int):
@@ -18,7 +19,7 @@ def check_if_user_can_access_shop(user_coffee_shop_id: int, target_coffee_shop_i
     if user_coffee_shop_id != target_coffee_shop_id:
         raise ShopsAppException(
             message="You are not authorized to make changes on this shop",
-            status_code=401,  # unauthorized error
+            status_code=status.HTTP_401_UNAUTHORIZED,  # unauthorized error
         )
 
 
@@ -42,5 +43,5 @@ def check_if_user_belongs_to_this_coffee_shop(
     ):
         raise ShopsAppException(
             message="You are not authorized to show or make changes on this user",
-            status_code=401,  # un authorized exception
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )

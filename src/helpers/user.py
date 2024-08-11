@@ -4,6 +4,7 @@ from src.utils.hashing import Hash
 from src.exceptions.exception import *
 from src.helpers import coffee_shop
 from typing import Union
+from fastapi import status
 
 
 def is_user_exists_by_email(
@@ -185,7 +186,8 @@ def update_user(
     user_instance = find_user_by_id(user_id=user_id, db=db)
     if not user_instance:
         raise ShopsAppException(
-            message=f"User with id {user_id} could not be found", status_code=404
+            message=f"User with id {user_id} could not be found",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # Update all fields of the user object based on the request
@@ -202,7 +204,7 @@ def update_user(
     return user_instance
 
 
-def create_update_validation(
+def validate_user_on_create_update(
     admin_coffee_shop_id: int,
     branch_id: int,
     user_email: str,
@@ -233,7 +235,7 @@ def create_update_validation(
     ):
         raise ShopsAppException(
             message=f"Branch with id={branch_id} does not exist in your coffee shop",
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     if updated_user_id is not None:
@@ -246,7 +248,7 @@ def create_update_validation(
         ):
             raise ShopsAppException(
                 message="User with this email or phone number already exists",
-                status_code=409,  # conflict error
+                status_code=status.HTTP_409_CONFLICT,  # conflict error
             )
     else:
         # verify email and phone uniqueness (Create case)
@@ -255,7 +257,7 @@ def create_update_validation(
         ):
             raise ShopsAppException(
                 message="User with this email or phone number already exists",
-                status_code=409,  # conflict error
+                status_code=status.HTTP_409_CONFLICT,  # conflict error
             )
 
 
@@ -274,7 +276,7 @@ def validate_and_create(
         UserCredentialsInResponse: The created user credentials.
     """
 
-    create_update_validation(
+    validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
         user_email=request.email,
@@ -301,7 +303,7 @@ def validate_and_create(
     )
 
 
-def validate_and_full_update(
+def full_update_user(
     request: schemas.UserPUTRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
@@ -318,7 +320,7 @@ def validate_and_full_update(
         UserCredentialsInResponse: The created user credentials.
     """
 
-    create_update_validation(
+    validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
         user_email=request.email,
@@ -334,7 +336,7 @@ def validate_and_full_update(
     )
 
 
-def validate_and_partial_update(
+def partial_update_user(
     request: schemas.UserPATCHRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
@@ -356,7 +358,8 @@ def validate_and_partial_update(
             coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
         ):
             raise ShopsAppException(
-                message="Branch does not belong to your coffee shop", status_code=400
+                message="Branch does not belong to your coffee shop",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
     # verify email and phone uniqueness and exclude the user to be updated
     # from the check
@@ -365,14 +368,16 @@ def validate_and_partial_update(
             phone_no=request.phone_no, db=db, excluded_user_id=user_id
         ):
             raise ShopsAppException(
-                message="User with this phone number already exists", status_code=409
+                message="User with this phone number already exists",
+                status_code=status.HTTP_409_CONFLICT,
             )
     if request.email:
         if is_user_exists_by_email(
             email=request.email, db=db, excluded_user_id=user_id
         ):
             raise ShopsAppException(
-                message="User with this phone number already exists", status_code=409
+                message="User with this phone number already exists",
+                status_code=status.HTTP_409_CONFLICT,
             )
     # update the user
     user_instance = update_user(request=request, db=db, user_id=user_id)
@@ -392,7 +397,8 @@ def delete_user_by_id(user_id: int, db: Session) -> None:
     user_instance = find_user_by_id(user_id=user_id, db=db)
     if not user_instance:
         raise ShopsAppException(
-            message=f"User with id {user_id} could not be found", status_code=404
+            message=f"User with id {user_id} could not be found",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
     user_instance.deleted = True
     db.commit()

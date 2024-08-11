@@ -5,6 +5,7 @@ from src.exceptions.exception import *
 from src.utils.hashing import Hash
 from src.security.jwt import generate_token_for_user
 from sqlalchemy.orm import Session
+from fastapi import status
 
 
 def signup(
@@ -32,7 +33,7 @@ def signup(
     ) or user.is_user_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
         raise ShopsAppException(
             message="User with this email or phone number already exists.",
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     # create coffee shop, branch and admin
@@ -70,14 +71,17 @@ def verify_user_credentials_and_gen_token(
     current_user = user.get_user_by_email(db=db, email=request.username)
 
     if not current_user:
-        raise ShopsAppException(message="Invalid Credentials", status_code=400)
+        raise ShopsAppException(
+            message="Invalid Credentials", status_code=status.HTTP_400_BAD_REQUEST
+        )
 
     # verify password
     if not Hash.verify(
         plain_password=request.password, hashed_password=current_user.password
     ):
         raise ShopsAppException(
-            message="Username or Password incorrect", status_code=400
+            message="Username or Password incorrect",
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     # create jwt and return it

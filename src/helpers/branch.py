@@ -21,7 +21,7 @@ def create_branch(
     if not coffee_shop.find_coffee_shop_by_id(db=db, coffee_shop_id=coffee_shop_id):
         raise ShopsAppException(
             message=f"Coffe Shop with id = {coffee_shop_id} does not exist",
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     created_branch = models.Branch(
@@ -122,7 +122,7 @@ def update_branch(
     if not found_branch:
         raise ShopsAppException(
             message=f"Branch with id = {branch_id} does not exist in this coffee shop",
-            status_code=404,  # not found error
+            status_code=status.HTTP_404_NOT_FOUND,  # not found error
         )
 
     # Update all fields of the branch object based on the request
@@ -155,14 +155,14 @@ def delete_branch_by_id(db: Session, branch_id: int, coffee_shop_id: int) -> Non
     if not found_branch:
         raise ShopsAppException(
             message=f"Branch with id = {branch_id} does not exist in this coffee shop",
-            status_code=404,  # not found error
+            status_code=status.HTTP_404_NOT_FOUND,  # not found error
         )
 
     # check if the branch has users
     if is_branch_have_users(branch_id=branch_id, db=db):
         raise ShopsAppException(
             message="Branch has associated users, please remove them first",
-            status_code=409,  # conflict error
+            status_code=status.HTTP_409_CONFLICT,  # conflict error
         )
     found_branch.deleted = True
     db.commit()

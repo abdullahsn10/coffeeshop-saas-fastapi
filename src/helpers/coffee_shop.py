@@ -59,7 +59,7 @@ def update_coffee_shop(
     if not found_coffee_shop:
         raise ShopsAppException(
             message=f"Coffee shop with id {coffee_shop_id} could not be found",
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # Update all fields of the coffee shop object based on the request

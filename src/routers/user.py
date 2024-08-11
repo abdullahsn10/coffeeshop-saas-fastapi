@@ -51,7 +51,7 @@ def full_update_user_endpoint(
         check_if_user_belongs_to_this_coffee_shop(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
-        return user.validate_and_full_update(
+        return user.full_update_user(
             request=request,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,
@@ -80,7 +80,7 @@ def partial_update_user_endpoint(
         check_if_user_belongs_to_this_coffee_shop(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
-        return user.validate_and_partial_update(
+        return user.partial_update_user(
             request=request,
             db=db,
             user_id=user_id,
