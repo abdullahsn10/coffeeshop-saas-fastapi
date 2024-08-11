@@ -1,5 +1,4 @@
 from src.models.branch import *
-from src.models.branch_user import *
 from src.models.coffee_shop import *
 from src.models.customer import *
 from src.models.inventory_item import *

@@ -24,7 +24,7 @@ def signup_endpoint(
         response.status_code = status.HTTP_201_CREATED
         return authentication.signup(request=request, db=db)
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(se))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -44,7 +44,7 @@ def login_endpoint(
             request=request, db=db
         )
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
