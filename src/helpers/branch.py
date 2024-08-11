@@ -9,11 +9,11 @@ def create_branch(
     request: schemas.BranchBase, coffee_shop_id: int, db: Session
 ) -> models.Branch:
     """
-    This helper function will be used to create a new branch \n
+    This helper function will be used to create a new branch
     *Args:
-        request (schemas.BranchBase): schema instance that contains branch details\n
-        db (Session): database session\n
-        coffee_shop_id (int): id of the coffee shop to create the branch in\n
+        request (schemas.BranchBase): schema instance that contains branch details
+        db (Session): database session
+        coffee_shop_id (int): id of the coffee shop to create the branch in
     *Returns:
         the created branch
     """
@@ -35,10 +35,10 @@ def create_branch(
 
 def get_coffee_shop_id(branch_id: int, db: Session) -> int:
     """
-    This helper function will be used to get the coffee shop id from the branch id\n
+    This helper function will be used to get the coffee shop id from the branch id
     *Args:
-        branch_id (int): branch id\n
-        db (Session): database session\n
+        branch_id (int): branch id
+        db (Session): database session
     *Returns:
         coffee shop id
     """
@@ -48,10 +48,10 @@ def get_coffee_shop_id(branch_id: int, db: Session) -> int:
 
 def get_all_users_in_branch(branch_id: int, db: Session) -> list[models.User]:
     """
-    This helper function will be used to get all users in a branch\n
+    This helper function will be used to get all users in a branch
     *Args:
-        branch_id (int): branch id\n
-        db (Session): database session\n
+        branch_id (int): branch id
+        db (Session): database session
     *Returns:
         list of users in the branch
     """
@@ -60,10 +60,10 @@ def get_all_users_in_branch(branch_id: int, db: Session) -> list[models.User]:
 
 def is_branch_have_users(branch_id: int, db: Session) -> bool:
     """
-    This helper function will be used to check if a branch has users\n
+    This helper function will be used to check if a branch has users
     *Args:
-        branch_id (int): branch id\n
-        db (Session): database session\n
+        branch_id (int): branch id
+        db (Session): database session
     *Returns:
         True if the branch has users, False otherwise
     """
@@ -80,11 +80,11 @@ def find_branch_in_this_coffee_shop(
 ) -> models.Branch:
     """
     This helper will be used to find a branch by id and coffee shop id
-    in otherwords, it will check if the branch belongs to the shop\n
+    in otherwords, it will check if the branch belongs to the shop
     *Args:
-        branch_id (int): branch id to be found\n
-        db (Session): database session\n
-        coffee_shop_id (int): coffee shop id that the branch belongs to\n
+        branch_id (int): branch id to be found
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id that the branch belongs to
     *Returns:
         the found branch
     """
@@ -104,13 +104,13 @@ def update_branch(
     request: schemas.BranchBase, db: Session, branch_id: int, coffee_shop_id: int
 ) -> models.Branch:
     """
-    This helper function will be used to update a branch\n
+    This helper function will be used to update a branch
     *Args:
-        request (schemas.BranchBase): schema instance that contains branch details\n
-        db (Session): database session\n
-        branch_id (int): branch id\n
-        coffee_shop_id (int): coffee shop id\n
-        user_coffee_shop_id (int): user coffee shop id\n
+        request (schemas.BranchBase): schema instance that contains branch details
+        db (Session): database session
+        branch_id (int): branch id
+        coffee_shop_id (int): coffee shop id
+        user_coffee_shop_id (int): user coffee shop id
     *Returns:
         the updated branch
     """
@@ -138,12 +138,12 @@ def update_branch(
 
 def delete_branch_by_id(db: Session, branch_id: int, coffee_shop_id: int) -> None:
     """
-    This helper function will be used to delete a branch\n
+    This helper function will be used to delete a branch
     *Args:
-        db (Session): database session\n
-        branch_id (int): branch id to delete\n
-        coffee_shop_id (int): coffee shop id\n
-        user_coffee_shop_id (int): user coffee shop id\n
+        db (Session): database session
+        branch_id (int): branch id to delete
+        coffee_shop_id (int): coffee shop id
+        user_coffee_shop_id (int): user coffee shop id
     *Returns:
         a dict representation of the deleted branch
     """

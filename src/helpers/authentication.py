@@ -12,15 +12,15 @@ def signup(
 ) -> schemas.UserCredentialsInResponse:
     """
     This helper function used to signup a new coffee shop into the system,
-    also create an admin user for the registered coffee shop.\n\n
+    also create an admin user for the registered coffee shop.
     *Args:
         request (SignUpIn): The request object which contains shop_details and
-        admin_details.\n
+        admin_details.
 
-        db (Session): Database session object.\n
+        db (Session): Database session object.
     *Returns:
         UserCredentialsInResponse: An object containing the registered admin user
-        credentials(emai, phone_no).\n
+        credentials(emai, phone_no).
     """
     coffee_shop_instance: schemas.CoffeeShopBase = request.shop_details
     branch_instance: schemas.BranchBase = request.branch_details
@@ -59,12 +59,12 @@ def verify_user_credentials_and_gen_token(
 ) -> schemas.Token:
     """
     This helper function used to verify a user's credentials and generate a
-    JWT token for the user.\n
+    JWT token for the user.
     *Args:
         request (LoginRequestBody): The request object which contains user_details\n
-        db (Session): Database session object.\n
+        db (Session): Database session object.
     *Returns:
-        The JWT token for the user.\n
+        The JWT token for the user.
     """
     # get the user using the email
     current_user = user.get_user_by_email(db=db, email=request.username)

@@ -10,11 +10,11 @@ def is_user_exists_by_email(
     email: str, db: Session, excluded_user_id: int = None
 ) -> bool:
     """
-    This helper function used to check if a user exists by email.\n
+    This helper function used to check if a user exists by email.
     *Args:
-        email (str): The email to check.\n
-        db (Session): A database session.\n
-        excluded_user_id (int): The user id to exclude from the check.\n
+        email (str): The email to check.
+        db (Session): A database session.
+        excluded_user_id (int): The user id to exclude from the check.
     *Returns:
         bool: True if the user exists, False otherwise.
     """
@@ -32,11 +32,11 @@ def is_user_exists_by_phone(
     phone_no: str, db: Session, excluded_user_id: int = None
 ) -> bool:
     """
-    This helper function used to check if a user exists by phone number.\n
+    This helper function used to check if a user exists by phone number.
     *Args:
-        phone_no (str): The email to check.\n
-        db (Session): A database session.\n
-        excluded_user_id (int): The user id to exclude from the check.\n
+        phone_no (str): The email to check.
+        db (Session): A database session.
+        excluded_user_id (int): The user id to exclude from the check.
     *Returns:
         bool: True if the user exists, False otherwise.
     """
@@ -59,11 +59,11 @@ def create_user(
     request: schemas.UserBase, role: models.UserRole, branch_id: int, db: Session
 ) -> models.User:
     """
-    This helper function used to create a new user.\n
+    This helper function used to create a new user.
     *Args:
-        request (UserBase): The user to create.\n
-        role (UserRole): The role of the user to create.\n
-        db (Session): A database session.\n
+        request (UserBase): The user to create.
+        role (UserRole): The role of the user to create.
+        db (Session): A database session.
     *Returns:
         User: The created user.
     """
@@ -87,10 +87,10 @@ def create_user(
 
 def find_user_by_id(user_id: int, db: Session) -> models.User:
     """
-    This helper function used to get a user by id.\n
+    This helper function used to get a user by id.
     *Args:
-        user_id (int): The user id.\n
-        db (Session): A database session.\n
+        user_id (int): The user id.
+        db (Session): A database session.
     *Returns:
         the User instance if exists, None otherwise.
     """
@@ -103,10 +103,10 @@ def find_user_by_id(user_id: int, db: Session) -> models.User:
 
 def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
     """
-    This helper function used to get all users in a specific coffee shop.\n
+    This helper function used to get all users in a specific coffee shop.
     *Args:
-        db (Session): A database session.\n
-        coffee_shop_id (int): The coffee shop id.\n
+        db (Session): A database session.
+        coffee_shop_id (int): The coffee shop id.
     *Returns:
         list[User]: The list of all users.
     """
@@ -123,10 +123,10 @@ def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models
 
 def get_branch_id_of_user(user_id: int, db: Session) -> int:
     """
-    This helper function used to get the branch id of the user.\n
+    This helper function used to get the branch id of the user.
     *Args:
-        user_id (int): The user id.\n
-        db (Session): A database session.\n
+        user_id (int): The user id.
+        db (Session): A database session.
     *Returns:
         the branch id of the user
     """
@@ -136,10 +136,10 @@ def get_branch_id_of_user(user_id: int, db: Session) -> int:
 
 def get_user_by_email(email: str, db: Session) -> models.User:
     """
-    This helper function used to get a user by email.\n
+    This helper function used to get a user by email.
     *Args:
-        email (str): The email to check.\n
-        db (Session): A database session.\n
+        email (str): The email to check.
+        db (Session): A database session.
 
     *Returns:
         the User instance if exists, None otherwise.
@@ -149,10 +149,10 @@ def get_user_by_email(email: str, db: Session) -> models.User:
 
 def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
     """
-    This helper function will be used to get the coffee shop id of the user\n
+    This helper function will be used to get the coffee shop id of the user
     *Args:
-        db (Session): A database session.\n
-        user_id (int): The user id.\n
+        db (Session): A database session.
+        user_id (int): The user id.
     *Returns:
         the coffee shop id of the user
     """
@@ -173,11 +173,11 @@ def update_user(
     db: Session,
 ) -> models.User:
     """
-    This helper function used to update a user.\n
+    This helper function used to update a user.
     *Args:
-        request (UserPUTRequestBody/ UserPATCHRequestBody): The user details to update.\n
-        db (Session): A database session.\n
-        user_id (int): The user id to update.\n
+        request (UserPUTRequestBody/ UserPATCHRequestBody): The user details to update.
+        db (Session): A database session.
+        user_id (int): The user id to update.
     *Returns:
         User: The updated user.
     """
@@ -212,17 +212,17 @@ def create_update_validation(
 ) -> None:
     """
     This helper function will be used to apply validation logic on creation or
-    update, validation will include:\n
+    update, validation will include:
         - validate that the admin's coffee shop has the branch that exists in
         the request body
         - validate the user's email uniqueness
-        - validate the user's phone number uniqueness\n\n
+        - validate the user's phone number uniqueness
     *Args:
-        - admin_coffee_shop_id (int): The coffee shop id of the admin who create/update the user.\n
-        - branch_id (int): The branch id that exists in the request body.\n
-        - user_email (str): The created/updated user email.\n
-        - user_phone_no(str): The created/updated user phone number.\n
-        - db (Session): A database session.\n
+        - admin_coffee_shop_id (int): The coffee shop id of the admin who create/update the user.
+        - branch_id (int): The branch id that exists in the request body.
+        - user_email (str): The created/updated user email.
+        - user_phone_no(str): The created/updated user phone number.
+        - db (Session): A database session.
     *Returns:
         raise Exceptions in case of violation, pass otherwise
     """
@@ -265,11 +265,11 @@ def validate_and_create(
     admin_coffee_shop_id: int,
 ) -> schemas.UserCredentialsInResponse:
     """
-    This helper function used to validate and createa new user.\n
+    This helper function used to validate and createa new user.
     *Args:
-        request (UserPOSTRequestBody): The user details to create\n
-        db (Session): A database session.\n
-        admin_coffee_shop_id (int): The coffee shop id of the admin who created the user.\n
+        request (UserPOSTRequestBody): The user details to create
+        db (Session): A database session.
+        admin_coffee_shop_id (int): The coffee shop id of the admin who created the user.
     *Returns:
         UserCredentialsInResponse: The created user credentials.
     """
@@ -308,11 +308,11 @@ def validate_and_full_update(
     user_id: int,
 ) -> schemas.UserCredentialsInResponse:
     """
-    This helper function used to validate and update user.\n
+    This helper function used to validate and update user.
     *Args:
-        request (UserPUTRequestBody): The user details to update\n
-        db (Session): A database session.\n
-        admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.\n
+        request (UserPUTRequestBody): The user details to update
+        db (Session): A database session.
+        admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
         user_id (int): the id of the user needed to be updated
     *Returns:
         UserCredentialsInResponse: The created user credentials.
@@ -384,10 +384,10 @@ def validate_and_partial_update(
 
 def delete_user_by_id(user_id: int, db: Session) -> None:
     """
-    This helper function used to delete a user by id.\n
+    This helper function used to delete a user by id.
     *Args:
-        user_id (int): The user id.\n
-        db (Session): A database session.\n
+        user_id (int): The user id.
+        db (Session): A database session.
     """
     user_instance = find_user_by_id(user_id=user_id, db=db)
     if not user_instance:
