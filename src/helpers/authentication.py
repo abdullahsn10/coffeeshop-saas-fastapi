@@ -1,6 +1,6 @@
 from src.models import UserRole
 from src import schemas
-from src.helpers import user, coffee_shop, branch, branch_user
+from src.helpers import user, coffee_shop, branch
 from src.exceptions.exception import *
 from src.utils.hashing import Hash
 from src.security.jwt import generate_token_for_user

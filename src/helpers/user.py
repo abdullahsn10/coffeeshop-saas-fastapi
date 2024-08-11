@@ -202,39 +202,47 @@ def update_user(
     return user_instance
 
 
-def validate_and_create_or_update(
-    request: Union[schemas.UserPOSTRequestBody, schemas.UserPUTRequestBody],
-    db: Session,
+def create_update_validation(
     admin_coffee_shop_id: int,
-    creation: bool = True,
-    user_id: int = None,
-) -> schemas.UserCredentialsInResponse:
+    branch_id: int,
+    user_email: str,
+    user_phone_no: str,
+    db: Session,
+    updated_user_id: int = None,
+) -> None:
     """
-    This helper function used to validate and create/update a new user.
+    This helper function will be used to apply validation logic on creation or
+    update, validation will include:\n
+        - validate that the admin's coffee shop has the branch that exists in
+        the request body
+        - validate the user's email uniqueness
+        - validate the user's phone number uniqueness\n\n
     *Args:
-        request (UserPOSTRequestBody/ UserPUTRequestBody): The user details to create or update.
-        db (Session): A database session.
-        admin_coffee_shop_id (int): The coffee shop id of the admin who created/updated the user.
+        - admin_coffee_shop_id (int): The coffee shop id of the admin who create/update the user.\n
+        - branch_id (int): The branch id that exists in the request body.\n
+        - user_email (str): The created/updated user email.\n
+        - user_phone_no(str): The created/updated user phone number.\n
+        - db (Session): A database session.\n
     *Returns:
-        UserCredentialsInResponse: The created/updated user credentials.
+        raise Exceptions in case of violation, pass otherwise
     """
 
     # verify that the branch id belongs to the admin coffee shop
     if not coffee_shop.is_shop_has_this_branch(
-        coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
+        coffee_shop_id=admin_coffee_shop_id, branch_id=branch_id, db=db
     ):
         raise ShopsAppException(
-            message=f"Branch with id={request.branch_id} does not exist in your coffee shop",
+            message=f"Branch with id={branch_id} does not exist in your coffee shop",
             status_code=400,
         )
 
-    if user_id is not None:
+    if updated_user_id is not None:
         # verify email and phone uniqueness and exclude the user to be updated
         # from the check (Update case)
         if is_user_exists_by_email(
-            email=request.email, db=db, excluded_user_id=user_id
+            email=user_email, db=db, excluded_user_id=updated_user_id
         ) or is_user_exists_by_phone(
-            phone_no=request.phone_no, db=db, excluded_user_id=user_id
+            phone_no=user_phone_no, db=db, excluded_user_id=updated_user_id
         ):
             raise ShopsAppException(
                 message="User with this email or phone number already exists",
@@ -242,35 +250,87 @@ def validate_and_create_or_update(
             )
     else:
         # verify email and phone uniqueness (Create case)
-        if is_user_exists_by_email(
-            email=request.email, db=db
-        ) or is_user_exists_by_phone(phone_no=request.phone_no, db=db):
+        if is_user_exists_by_email(email=user_email, db=db) or is_user_exists_by_phone(
+            phone_no=user_phone_no, db=db
+        ):
             raise ShopsAppException(
                 message="User with this email or phone number already exists",
                 status_code=409,  # conflict error
             )
 
-    if creation:
-        # create the user
-        user_details = schemas.UserBase(
-            first_name=request.first_name,
-            last_name=request.last_name,
-            email=request.email,
-            phone_no=request.phone_no,
-            password=request.password,
-        )
-        user_instance = create_user(
-            request=user_details,
-            role=request.role,
-            branch_id=request.branch_id,
-            db=db,
-        )
-    else:
-        # update the user
-        user_instance = update_user(request=request, db=db, user_id=user_id)
+
+def validate_and_create(
+    request: schemas.UserPOSTRequestBody,
+    db: Session,
+    admin_coffee_shop_id: int,
+) -> schemas.UserCredentialsInResponse:
+    """
+    This helper function used to validate and createa new user.\n
+    *Args:
+        request (UserPOSTRequestBody): The user details to create\n
+        db (Session): A database session.\n
+        admin_coffee_shop_id (int): The coffee shop id of the admin who created the user.\n
+    *Returns:
+        UserCredentialsInResponse: The created user credentials.
+    """
+
+    create_update_validation(
+        admin_coffee_shop_id=admin_coffee_shop_id,
+        branch_id=request.branch_id,
+        user_email=request.email,
+        user_phone_no=request.phone_no,
+        db=db,
+    )
+    # create the user
+    user_details = schemas.UserBase(
+        first_name=request.first_name,
+        last_name=request.last_name,
+        email=request.email,
+        phone_no=request.phone_no,
+        password=request.password,
+    )
+    created_user = create_user(
+        request=user_details,
+        role=request.role,
+        branch_id=request.branch_id,
+        db=db,
+    )
 
     return schemas.UserCredentialsInResponse(
-        email=user_instance.email, phone_no=user_instance.phone_no
+        email=created_user.email, phone_no=created_user.phone_no
+    )
+
+
+def validate_and_full_update(
+    request: schemas.UserPUTRequestBody,
+    db: Session,
+    admin_coffee_shop_id: int,
+    user_id: int,
+) -> schemas.UserCredentialsInResponse:
+    """
+    This helper function used to validate and update user.\n
+    *Args:
+        request (UserPUTRequestBody): The user details to update\n
+        db (Session): A database session.\n
+        admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.\n
+        user_id (int): the id of the user needed to be updated
+    *Returns:
+        UserCredentialsInResponse: The created user credentials.
+    """
+
+    create_update_validation(
+        admin_coffee_shop_id=admin_coffee_shop_id,
+        branch_id=request.branch_id,
+        user_email=request.email,
+        user_phone_no=request.phone_no,
+        db=db,
+        updated_user_id=user_id,
+    )
+    # update the user
+    updated_user = update_user(request=request, db=db, user_id=user_id)
+
+    return schemas.UserCredentialsInResponse(
+        email=updated_user.email, phone_no=updated_user.phone_no
     )
 
 

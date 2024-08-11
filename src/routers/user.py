@@ -23,11 +23,10 @@ def create_user_endpoint(
     """
     try:
         response.status_code = status.HTTP_201_CREATED
-        return user.validate_and_create_or_update(
+        return user.validate_and_create(
             request=request,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,
-            creation=True,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
@@ -52,11 +51,10 @@ def full_update_user_endpoint(
         check_if_user_belongs_to_this_coffee_shop(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
-        return user.validate_and_create_or_update(
+        return user.validate_and_full_update(
             request=request,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,
-            creation=False,
             user_id=user_id,
         )
     except ShopsAppException as se:
