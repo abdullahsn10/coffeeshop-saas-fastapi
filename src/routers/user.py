@@ -30,11 +30,7 @@ def create_user_endpoint(
             creation=True,
         )
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
-    except ShopsAppUnAuthorizedException as ua:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
-    except ShopsAppAlreadyExistsException as ae:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ae))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -64,11 +60,7 @@ def full_update_user_endpoint(
             user_id=user_id,
         )
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
-    except ShopsAppUnAuthorizedException as ua:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
-    except ShopsAppAlreadyExistsException as ae:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ae))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -97,11 +89,7 @@ def partial_update_user_endpoint(
             admin_coffee_shop_id=current_user.coffee_shop_id,
         )
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
-    except ShopsAppUnAuthorizedException as ua:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
-    except ShopsAppAlreadyExistsException as ae:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ae))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -117,7 +105,7 @@ def get_all_users_endpoint(
     GET endpoint to get all users
     """
     try:
-        return user.find_all_in_this_shop(
+        return user.find_all_users_in_this_shop(
             db=db, coffee_shop_id=current_user.coffee_shop_id
         )
     except Exception as e:
@@ -139,11 +127,9 @@ def get_user_endpoint(
         check_if_user_belongs_to_this_coffee_shop(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
-        return user.find_by_id(db=db, user_id=user_id)
+        return user.find_user_by_id(db=db, user_id=user_id)
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
-    except ShopsAppUnAuthorizedException as ua:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -165,11 +151,9 @@ def delete_user_endpoint(
             user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
         )
         response.status_code = status.HTTP_204_NO_CONTENT
-        user.delete_by_id(db=db, user_id=user_id)
+        user.delete_user_by_id(db=db, user_id=user_id)
     except ShopsAppException as se:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(se))
-    except ShopsAppUnAuthorizedException as ua:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ua))
+        raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)

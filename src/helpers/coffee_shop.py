@@ -4,7 +4,9 @@ from src.exceptions.exception import *
 from src.helpers import user, branch_user
 
 
-def create(request: schemas.CoffeeShopBase, db: Session) -> models.CoffeeShop:
+def create_coffee_shop(
+    request: schemas.CoffeeShopBase, db: Session
+) -> models.CoffeeShop:
     """
     This helper function used to create a coffee shop
     *Args:
@@ -22,32 +24,43 @@ def create(request: schemas.CoffeeShopBase, db: Session) -> models.CoffeeShop:
     return created_shop_instance
 
 
-def find_by_id(db: Session, id: int) -> models.CoffeeShop:
+def find_coffee_shop_by_id(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
     """
     This helper function used to find a coffee shop by id
     *Args:
         db (Session): database session
-        id (int): coffee shop id
+        coffee_shop_id (int): coffee shop id
     *Returns:
         The found coffee shop instance
     """
-    return db.query(models.CoffeeShop).filter(models.CoffeeShop.id == id).first()
+    return (
+        db.query(models.CoffeeShop)
+        .filter(models.CoffeeShop.id == coffee_shop_id)
+        .first()
+    )
 
 
-def update(request: schemas.CoffeeShopBase, db: Session, id: int) -> models.CoffeeShop:
+def update_coffee_shop(
+    request: schemas.CoffeeShopBase, db: Session, coffee_shop_id: int
+) -> models.CoffeeShop:
     """
-    This helper function used to fully update a coffee shop
+    This helper function used to fully update a coffee shop\n
     *Args:
-        request (CoffeeShopBase): contains coffee shop details
-        db (Session): database session
-        id (int): coffee shop id
+        request (CoffeeShopBase): contains coffee shop details\n
+        db (Session): database session\n
+        coffee_shop_id (int): coffee shop id\n
     *Returns:
         The updated coffee shop instance
     """
 
-    found_coffee_shop: models.CoffeeShop = find_by_id(db=db, id=id)
+    found_coffee_shop: models.CoffeeShop = find_coffee_shop_by_id(
+        db=db, coffee_shop_id=coffee_shop_id
+    )
     if not found_coffee_shop:
-        raise ShopsAppException(f"Coffee shop with id {id} could not be found")
+        raise ShopsAppException(
+            message=f"Coffee shop with id {coffee_shop_id} could not be found",
+            status_code=404,
+        )
 
     # Update all fields of the coffee shop object based on the request
     update_data = request.model_dump(
@@ -60,11 +73,11 @@ def update(request: schemas.CoffeeShopBase, db: Session, id: int) -> models.Coff
     return found_coffee_shop
 
 
-def has_branch(id: int, branch_id: int, db: Session) -> bool:
+def is_shop_has_this_branch(coffee_shop_id: int, branch_id: int, db: Session) -> bool:
     """
     This helper function used to check if a coffee shop has a specific branch
     *Args:
-        id (int): coffee shop id
+        coffee_shop_id (int): coffee shop id
         branch_id (int): branch id
         db (Session): database session
     *Returns:
@@ -75,7 +88,7 @@ def has_branch(id: int, branch_id: int, db: Session) -> bool:
         .filter(
             models.Branch.id == branch_id,
             models.Branch.deleted == False,
-            models.Branch.coffee_shop_id == id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
         )
         .first()
         is not None

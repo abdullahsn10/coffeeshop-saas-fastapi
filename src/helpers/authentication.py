@@ -27,26 +27,26 @@ def signup(
     admin_user_instance: schemas.UserBase = request.admin_details
 
     # check email or phone duplicates
-    if user.is_exists_by_email(
+    if user.is_user_exists_by_email(
         email=admin_user_instance.email, db=db
-    ) or user.is_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
-        raise ShopsAppAlreadyExistsException(
-            "User with this email or phone number already exists."
+    ) or user.is_user_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
+        raise ShopsAppException(
+            message="User with this email or phone number already exists.",
+            status_code=400,
         )
 
     # create coffee shop, branch and admin
-    created_coffee_shop = coffee_shop.create(request=coffee_shop_instance, db=db)
-    created_branch = branch.create(
+    created_coffee_shop = coffee_shop.create_coffee_shop(
+        request=coffee_shop_instance, db=db
+    )
+    created_branch = branch.create_branch(
         request=branch_instance, db=db, coffee_shop_id=created_coffee_shop.id
     )
-    created_admin_user = user.create(
+    created_admin_user = user.create_user(
         request=admin_user_instance,
         db=db,
         role=UserRole.ADMIN,
         branch_id=created_branch.id,
-    )
-    created_branch_admin_relationship = branch_user.create(
-        branch_id=created_branch.id, manager_id=created_admin_user.id, db=db
     )
     return schemas.UserCredentialsInResponse(
         email=created_admin_user.email,
@@ -58,16 +58,18 @@ def verify_user_credentials_and_gen_token(
     request: schemas.LoginRequestBody, db: Session
 ) -> schemas.Token:
     # get the user using the email
-    current_user = user.get_by_email(db=db, email=request.username)
+    current_user = user.get_user_by_email(db=db, email=request.username)
 
     if not current_user:
-        raise ShopsAppException("Invalid Credentials")
+        raise ShopsAppException(message="Invalid Credentials", status_code=400)
 
     # verify password
     if not Hash.verify(
         plain_password=request.password, hashed_password=current_user.password
     ):
-        raise ShopsAppException("Username or Password incorrect")
+        raise ShopsAppException(
+            message="Username or Password incorrect", status_code=400
+        )
 
     # create jwt and return it
     # get the coffee shop id

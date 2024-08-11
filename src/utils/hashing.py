@@ -19,10 +19,10 @@ class Hash:
     @classmethod
     def verify(cls, plain_password: str, hashed_password: str) -> bool:
         """
-        Verify the plain password against the hashed password
+        Verify the plain password against the hashed password\n
         *Args:
-            plain_password: plain text password to be verified
-            hashed_password: hashed password to compare against and verify
+            plain_password: plain text password to be verified\n
+            hashed_password: hashed password to compare against and verify\n
         *Returns:
             True if the hashed password matches the plain password, False otherwise
         """
