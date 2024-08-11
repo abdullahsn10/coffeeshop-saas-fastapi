@@ -98,7 +98,7 @@ def update_branch_endpoint(
         )
 
 
-@router.delete("/{coffee_shop_id}/branches/{branch_id}", response_model=dict[str, str])
+@router.delete("/{coffee_shop_id}/branches/{branch_id}")
 def delete_branch_endpoint(
     coffee_shop_id: int,
     branch_id: int,
