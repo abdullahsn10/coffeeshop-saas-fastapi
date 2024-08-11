@@ -23,7 +23,7 @@ def create_user_endpoint(
     """
     try:
         response.status_code = status.HTTP_201_CREATED
-        return user.validate_and_create(
+        return user.validate_and_create_user(
             request=request,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,

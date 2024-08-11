@@ -261,7 +261,7 @@ def validate_user_on_create_update(
             )
 
 
-def validate_and_create(
+def validate_and_create_user(
     request: schemas.UserPOSTRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
