@@ -145,7 +145,11 @@ def get_user_by_email(email: str, db: Session) -> models.User:
     *Returns:
         the User instance if exists, None otherwise.
     """
-    return db.query(models.User).filter(models.User.email == email).first()
+    return (
+        db.query(models.User)
+        .filter(models.User.email == email, models.User.deleted == False)
+        .first()
+    )
 
 
 def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
