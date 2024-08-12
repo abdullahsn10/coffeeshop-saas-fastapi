@@ -54,7 +54,7 @@ def get_all_inventory_items_endpoint(
         )
 
 
-@router.put("/{inventory_item_id}")
+@router.put("/{inventory_item_id}", response_model=schemas.InventoryItemGETResponse)
 def update_inventory_item_endpoint(
     request: schemas.InventoryItemPUTRequestBody,
     inventory_item_id: int,
@@ -70,6 +70,35 @@ def update_inventory_item_endpoint(
         )
         return inventory_item.update_inventory_item(
             request=request, db=db, inventory_item_id=inventory_item_id
+        )
+    except ShopsAppException as se:
+        raise HTTPException(status_code=se.status_code, detail=se.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
+@router.delete("/{inventory_item_id}")
+def delete_inventory_item_endpoint(
+    inventory_item_id: int,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+):
+    """
+    DELETE endpoint to delete an inventory item in the shop
+    """
+    try:
+        check_if_user_can_access_this_item(
+            item_id=inventory_item_id,
+            db=db,
+            admin_coffee_shop_id=current_user.coffee_shop_id,
+            is_inventory_item=True,
+        )
+        response.status_code = status.HTTP_204_NO_CONTENT
+        inventory_item.delete_inventory_item_by_id(
+            inventory_item_id=inventory_item_id, db=db
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)

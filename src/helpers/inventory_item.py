@@ -122,3 +122,27 @@ def update_inventory_item(
     db.commit()
     db.refresh(found_inventory_item)
     return found_inventory_item
+
+
+def delete_inventory_item_by_id(db: Session, inventory_item_id: int) -> None:
+    """
+    This helper function will be used to delete an inventory item by id.
+    *Args:
+        db (Session): database session
+        inventory_item_id (int): the id of the inventory item to be deleted
+    *Returns:
+        None
+    """
+
+    # check if the branch belongs to this coffee shop
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id(
+        db=db, inventory_item_id=inventory_item_id
+    )
+    if not found_inventory_item:
+        raise ShopsAppException(
+            message=f"Inventory Item with id {inventory_item_id} could not be found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    found_inventory_item.deleted = True
+    db.commit()
