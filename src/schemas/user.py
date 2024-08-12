@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 from src.models.user import UserRole
 from typing import Optional
+from src.exceptions.exception import ShopsAppException
 
 
 class UserBase(BaseModel):
@@ -96,3 +97,9 @@ class UserGETResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UserInRestorePATCHRequestBody(BaseModel):
+    email: Optional[str] = None
+    phone_no: Optional[str] = None
+    branch_id: int

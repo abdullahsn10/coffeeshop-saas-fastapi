@@ -125,3 +125,30 @@ def delete_branch_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+@router.get(
+    "/{coffee_shop_id}/branches", response_model=list[schemas.BranchResponseBody]
+)
+def get_all_branches_endpoint(
+    coffee_shop_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
+):
+    """
+    GET endpoint to retrieve all branches for a specific coffee shop
+    """
+    try:
+        check_if_user_can_access_shop(
+            user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
+        )
+        return coffee_shop.get_all_branches_in_the_shop(
+            coffee_shop_id=coffee_shop_id, db=db
+        )
+    except ShopsAppException as se:
+        raise HTTPException(status_code=se.status_code, detail=se.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

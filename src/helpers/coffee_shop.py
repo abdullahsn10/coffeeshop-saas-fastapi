@@ -108,7 +108,10 @@ def get_all_branches_in_the_shop(
     """
     return (
         db.query(models.Branch)
-        .filter(models.Branch.coffee_shop_id == coffee_shop_id)
+        .filter(
+            models.Branch.coffee_shop_id == coffee_shop_id,
+            models.Branch.deleted == False,
+        )
         .all()
     )
 
@@ -131,4 +134,92 @@ def get_all_admins_in_the_shop(coffee_shop_id: int, db: Session) -> list[models.
             models.User.deleted == False,
         )
         .all()
+    )
+
+
+def get_all_inventory_items_in_the_shop(
+    db: Session, coffee_shop_id: int
+) -> list[models.InventoryItem]:
+    """
+    This helper function used to get all inventory items of a coffee shop
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop needed to retrieve inventory items from
+        db (Session): database session
+    *Returns:
+        a list of inventory items
+    """
+    return (
+        db.query(models.InventoryItem)
+        .filter(
+            models.InventoryItem.coffee_shop_id == coffee_shop_id,
+            models.InventoryItem.deleted == False,
+        )
+        .all()
+    )
+
+
+def get_all_menu_items_in_the_shop(
+    db: Session, coffee_shop_id: int
+) -> list[models.MenuItem]:
+    """
+    This helper function used to get all menu items of a coffee shop
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop needed to retrieve menu items from
+        db (Session): database session
+    *Returns:
+        a list of menu items
+    """
+    return (
+        db.query(models.MenuItem)
+        .filter(
+            models.MenuItem.coffee_shop_id == coffee_shop_id,
+            models.MenuItem.deleted == False,
+        )
+        .all()
+    )
+
+
+def get_user_in_the_shop_by_email(
+    user_email: str, db: Session, coffee_shop_id: int
+) -> models.User:
+    """
+    This helper function used to get a user in the shop by email
+    *Args:
+        user_email (str): email of the user
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id of the user
+    *Returns:
+        the retrieved user if found, else None
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.email == user_email,
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
+        .first()
+    )
+
+
+def get_user_in_the_shop_by_phone(
+    user_phone_no: str, db: Session, coffee_shop_id: int
+) -> models.User:
+    """
+    This helper function used to get a user in the shop by phone number
+    *Args:
+        phone_no (str): phone number of the user
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id of the user
+    *Returns:
+        the retrieved user if found, else None
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.phone_no == user_phone_no,
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
+        .first()
     )

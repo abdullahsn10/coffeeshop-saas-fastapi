@@ -407,3 +407,62 @@ def delete_user_by_id(user_id: int, db: Session) -> None:
     user_instance.deleted = True
     db.commit()
     db.refresh(user_instance)
+
+
+def restore_deleted_user_to_a_branch(
+    db: Session,
+    request: schemas.UserInRestorePATCHRequestBody,
+    admin_coffee_shop_id: int,
+):
+    """
+    This helper function used to restore a deleted user to a branch by his/her phone
+    or email.
+    *Args:
+        db (Session): A database session.
+        request (schemas.UserInRestorePATCHRequestBody): The user details to restore
+        admin_coffee_shop_id (int): the coffee shop id of the admin need to restore the user
+    """
+
+    # check if the user belongs to the user coffee shop
+    if request.phone_no:
+        restored_user = coffee_shop.get_user_in_the_shop_by_phone(
+            user_phone_no=request.phone_no, db=db, coffee_shop_id=admin_coffee_shop_id
+        )
+
+    elif request.email:
+        restored_user = coffee_shop.get_user_in_the_shop_by_email(
+            user_email=request.email, db=db, coffee_shop_id=admin_coffee_shop_id
+        )
+    else:
+        raise ShopsAppException(
+            message="Email or phone number must be provided",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not restored_user:
+        raise ShopsAppException(
+            message="You are not authorized to make changes on this user",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # check if the provided branch belongs to the admin's coffee shop
+    if not coffee_shop.is_shop_has_this_branch(
+        coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
+    ):
+        raise ShopsAppException(
+            message="You are not authorized to make changes on this branch",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # check if the user deleted
+    if not restored_user.deleted:
+        raise ShopsAppException(
+            message="User already exists in a branch",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    restored_user.deleted = False
+    restored_user.branch_id = request.branch_id
+    db.commit()
+    db.refresh(restored_user)
+    return restored_user
