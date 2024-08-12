@@ -61,16 +61,14 @@ def check_if_user_can_access_this_item(
         raise a ShopAppException if the user is not authorized to make changes
     """
     if is_inventory_item:
-        found_inventory_item = inventory_item.find_inventory_item_by_id(
+        found_item = inventory_item.find_inventory_item_by_id(
             db=db, inventory_item_id=item_id
         )
-        if (
-            not found_inventory_item
-            or found_inventory_item.coffee_shop_id != admin_coffee_shop_id
-        ):
-            raise ShopsAppException(
-                message="You are not authorized to show or make changes on this item",
-                status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
-            )
     else:
-        pass
+        found_item = menu_item.find_menu_item_by_id(db=db, menu_item_id=item_id)
+
+    if not found_item or found_item.coffee_shop_id != admin_coffee_shop_id:
+        raise ShopsAppException(
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
+        )

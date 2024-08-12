@@ -156,3 +156,24 @@ def get_all_inventory_items_in_the_shop(
         )
         .all()
     )
+
+
+def get_all_menu_items_in_the_shop(
+    db: Session, coffee_shop_id: int
+) -> list[models.MenuItem]:
+    """
+    This helper function used to get all menu items of a coffee shop
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop needed to retrieve menu items from
+        db (Session): database session
+    *Returns:
+        a list of menu items
+    """
+    return (
+        db.query(models.MenuItem)
+        .filter(
+            models.MenuItem.coffee_shop_id == coffee_shop_id,
+            models.MenuItem.deleted == False,
+        )
+        .all()
+    )

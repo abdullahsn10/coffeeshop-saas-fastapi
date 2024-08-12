@@ -42,6 +42,9 @@ def get_all_inventory_items_endpoint(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
+    """
+    GET endpoint to get all inventory items in the shop
+    """
     try:
         return coffee_shop.get_all_inventory_items_in_the_shop(
             db=db, coffee_shop_id=current_user.coffee_shop_id
@@ -61,6 +64,9 @@ def update_inventory_item_endpoint(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(require_role([models.UserRole.ADMIN])),
 ):
+    """
+    PUT endpoint to update an inventory item in the shop
+    """
     try:
         check_if_user_can_access_this_item(
             item_id=inventory_item_id,
