@@ -135,3 +135,24 @@ def get_all_admins_in_the_shop(coffee_shop_id: int, db: Session) -> list[models.
         )
         .all()
     )
+
+
+def get_all_inventory_items_in_the_shop(
+    db: Session, coffee_shop_id: int
+) -> list[models.InventoryItem]:
+    """
+    This helper function used to get all inventory items of a coffee shop
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop needed to retrieve inventory items from
+        db (Session): database session
+    *Returns:
+        a list of inventory items
+    """
+    return (
+        db.query(models.InventoryItem)
+        .filter(
+            models.InventoryItem.coffee_shop_id == coffee_shop_id,
+            models.InventoryItem.deleted == False,
+        )
+        .all()
+    )

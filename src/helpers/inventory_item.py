@@ -1,12 +1,34 @@
+from datetime import date
+
 from src import schemas, models
 from sqlalchemy.orm import Session
 from src.helpers import coffee_shop
 from src.exceptions.exception import *
 
 
+def validate_prod_and_expire_date_in_item(
+    prod_date: date,
+    expire_date: date,
+):
+    """
+    This helper function will be used to validate the production and
+    expiration date.
+    *Args:
+        prod_date (int): The prod date.
+        expire_date (int): The expiration date.
+    *Returns:
+        raise ShopsAppException if there is any violation
+    """
+    if prod_date > expire_date:
+        raise ShopsAppException(
+            message=f"Production date cannot be greater than expiration date",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 def create_inventory_item(
     request: schemas.InventoryItemPOSTRequestBody, coffee_shop_id: int, db: Session
-):
+) -> models.InventoryItem:
     """
     This helper function will be used to create a new inventory item.
     *Args:
@@ -24,11 +46,10 @@ def create_inventory_item(
         )
 
     # validate prod date and expire date
-    if request.prod_date > request.expire_date:
-        raise ShopsAppException(
-            message=f"Production date cannot be greater than expiration date",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+    validate_prod_and_expire_date_in_item(
+        prod_date=request.prod_date,
+        expire_date=request.expire_date,
+    )
 
     created_inventory_item = models.InventoryItem(
         name=request.name,
@@ -42,3 +63,62 @@ def create_inventory_item(
     db.commit()
     db.refresh(created_inventory_item)
     return created_inventory_item
+
+
+def find_inventory_item_by_id(
+    db: Session, inventory_item_id: int
+) -> models.InventoryItem:
+    """
+    This helper function will be used to find a specific inventory item by id.
+    *Args:
+        db (Session): the database session
+        inventory_item_id (int): the id of the inventory item needed to be found
+    *Returns:
+    the found inventory item or None if it does not exist
+    """
+    return (
+        db.query(models.InventoryItem)
+        .filter(
+            models.InventoryItem.id == inventory_item_id,
+            models.InventoryItem.deleted == False,
+        )
+        .first()
+    )
+
+
+def update_inventory_item(
+    request: schemas.InventoryItemPUTRequestBody, db: Session, inventory_item_id: int
+):
+    """
+    This helper function will be used to update a specific inventory item.
+    *Args:
+        request (schemas.InventoryItemPUTRequestBody): the details of the inventory item
+        db (Session): the database session
+        inventory_item_id (int): the id of the inventory item to be updated
+    *Returns:
+        the updated inventory item
+    """
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id(
+        db=db, inventory_item_id=inventory_item_id
+    )
+    if not found_inventory_item:
+        raise ShopsAppException(
+            message=f"Inventory Item with id {inventory_item_id} could not be found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    # validate prod and expire date
+    validate_prod_and_expire_date_in_item(
+        prod_date=request.prod_date,
+        expire_date=request.expire_date,
+    )
+
+    # Update all fields of the inventory item object based on the request
+    update_data = request.model_dump(
+        exclude_unset=True
+    )  # Get dictionary of all set fields in request
+    for field, value in update_data.items():
+        setattr(found_inventory_item, field, value)
+    db.commit()
+    db.refresh(found_inventory_item)
+    return found_inventory_item

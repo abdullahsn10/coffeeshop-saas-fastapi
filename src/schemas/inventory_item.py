@@ -26,3 +26,11 @@ class InventoryItemGETResponse(BaseModel):
     expire_date: date
     prod_date: date
     available_quantity: int
+
+
+class InventoryItemPUTRequestBody(InventoryItemPOSTRequestBody):
+    """
+    pydantic schema for InventoryItem in PUT RequestBody
+    """
+
+    pass
