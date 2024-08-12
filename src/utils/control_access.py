@@ -37,10 +37,10 @@ def check_if_user_belongs_to_this_coffee_shop(
         raise a ShopAppException if the user does not belong to the
         coffee shop.
     """
-    user_instance = user.find_user_by_id(user_id=user_id, db=db)
-    if not user_instance or not coffee_shop.is_shop_has_this_branch(
-        coffee_shop_id=coffee_shop_id, branch_id=user_instance.branch_id, db=db
-    ):
+    user_instance = user.find_user_by_id(
+        user_id=user_id, db=db, coffee_shop_id=coffee_shop_id
+    )
+    if not user_instance:
         raise ShopsAppException(
             message="You are not authorized to show or make changes on this user",
             status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
