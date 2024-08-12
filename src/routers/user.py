@@ -166,11 +166,10 @@ def delete_user_endpoint(
     DELETE endpoint to delete a user
     """
     try:
-        check_if_user_belongs_to_this_coffee_shop(
-            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
-        )
         response.status_code = status.HTTP_204_NO_CONTENT
-        user.delete_user_by_id(db=db, user_id=user_id)
+        user.delete_user_by_id(
+            db=db, user_id=user_id, admin_coffee_shop_id=current_user.coffee_shop_id
+        )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
