@@ -108,7 +108,10 @@ def get_all_branches_in_the_shop(
     """
     return (
         db.query(models.Branch)
-        .filter(models.Branch.coffee_shop_id == coffee_shop_id)
+        .filter(
+            models.Branch.coffee_shop_id == coffee_shop_id,
+            models.Branch.deleted == False,
+        )
         .all()
     )
 
