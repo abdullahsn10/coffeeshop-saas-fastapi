@@ -14,3 +14,5 @@ class MenuItem(Base):
     description = Column(String)
     price = Column(DOUBLE_PRECISION, nullable=False)
     deleted = Column(Boolean, default=False)
+    # relationship with Coffee Shop
+    coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))

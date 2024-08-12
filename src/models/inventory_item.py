@@ -24,5 +24,5 @@ class InventoryItem(Base):
     prod_date = Column(DATE)
     available_quantity = Column(Integer, nullable=False)
     deleted = Column(Boolean, default=False)
-    # relationship with users (inventory manager (admin))
-    inventory_manager_id = Column(Integer, ForeignKey("user.id"))
+    # relationship with Coffee Shop
+    coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))
