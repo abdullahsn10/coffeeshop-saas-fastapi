@@ -177,3 +177,49 @@ def get_all_menu_items_in_the_shop(
         )
         .all()
     )
+
+
+def get_user_in_the_shop_by_email(
+    user_email: str, db: Session, coffee_shop_id: int
+) -> models.User:
+    """
+    This helper function used to get a user in the shop by email
+    *Args:
+        user_email (str): email of the user
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id of the user
+    *Returns:
+        the retrieved user if found, else None
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.email == user_email,
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
+        .first()
+    )
+
+
+def get_user_in_the_shop_by_phone(
+    user_phone_no: str, db: Session, coffee_shop_id: int
+) -> models.User:
+    """
+    This helper function used to get a user in the shop by phone number
+    *Args:
+        phone_no (str): phone number of the user
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id of the user
+    *Returns:
+        the retrieved user if found, else None
+    """
+    return (
+        db.query(models.User)
+        .filter(
+            models.User.phone_no == user_phone_no,
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
+        .first()
+    )

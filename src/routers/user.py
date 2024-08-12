@@ -65,6 +65,27 @@ def full_update_user_endpoint(
         )
 
 
+@router.patch("/restore", response_model=schemas.UserGETResponse)
+def restore_deleted_user_endpoint(
+    request: schemas.UserInRestorePATCHRequestBody,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
+):
+    """
+    PATCH endpoint to restore a deleted user to a specific branch
+    """
+    try:
+        return user.restore_deleted_user_to_a_branch(
+            db=db, request=request, admin_coffee_shop_id=current_user.coffee_shop_id
+        )
+    except ShopsAppException as se:
+        raise HTTPException(status_code=se.status_code, detail=se.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+
+
 @router.patch("/{user_id}", response_model=schemas.UserCredentialsInResponse)
 def partial_update_user_endpoint(
     user_id: int,
