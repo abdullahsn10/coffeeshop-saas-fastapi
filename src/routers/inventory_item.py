@@ -5,7 +5,6 @@ from src.security.oauth2 import require_role
 from src.helpers import inventory_item, coffee_shop
 from src.exceptions.exception import *
 from sqlalchemy.orm import Session
-from src.utils.control_access import check_if_user_can_access_this_item
 
 router = APIRouter(
     tags=["Inventory Items"],
@@ -68,14 +67,11 @@ def update_inventory_item_endpoint(
     PUT endpoint to update an inventory item in the shop
     """
     try:
-        check_if_user_can_access_this_item(
-            item_id=inventory_item_id,
-            db=db,
-            admin_coffee_shop_id=current_user.coffee_shop_id,
-            is_inventory_item=True,
-        )
         return inventory_item.update_inventory_item(
-            request=request, db=db, inventory_item_id=inventory_item_id
+            request=request,
+            db=db,
+            inventory_item_id=inventory_item_id,
+            admin_coffee_shop_id=current_user.coffee_shop_id,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
@@ -96,15 +92,11 @@ def delete_inventory_item_endpoint(
     DELETE endpoint to delete an inventory item in the shop
     """
     try:
-        check_if_user_can_access_this_item(
-            item_id=inventory_item_id,
-            db=db,
-            admin_coffee_shop_id=current_user.coffee_shop_id,
-            is_inventory_item=True,
-        )
         response.status_code = status.HTTP_204_NO_CONTENT
         inventory_item.delete_inventory_item_by_id(
-            inventory_item_id=inventory_item_id, db=db
+            inventory_item_id=inventory_item_id,
+            db=db,
+            admin_coffee_shop_id=current_user.coffee_shop_id,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)

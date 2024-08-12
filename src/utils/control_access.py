@@ -45,30 +45,3 @@ def check_if_user_belongs_to_this_coffee_shop(
             message="You are not authorized to show or make changes on this user",
             status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
-
-
-def check_if_user_can_access_this_item(
-    item_id: int, db: Session, admin_coffee_shop_id: int, is_inventory_item: bool = True
-):
-    """
-    This utils function performs a logic that checks if a user can make changes on
-    an item either inventory item or menu item.
-    *Args:
-    item_id (int): The id of the item.
-    db (Session): A database session.
-    admin_coffee_shop_id (int): The coffee shop id of the admin who needs to make changes on the item.
-    *Returns:
-        raise a ShopAppException if the user is not authorized to make changes
-    """
-    if is_inventory_item:
-        found_item = inventory_item.find_inventory_item_by_id(
-            db=db, inventory_item_id=item_id
-        )
-    else:
-        found_item = menu_item.find_menu_item_by_id(db=db, menu_item_id=item_id)
-
-    if not found_item or found_item.coffee_shop_id != admin_coffee_shop_id:
-        raise ShopsAppException(
-            message="You are not authorized to show or make changes on this item",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
-        )

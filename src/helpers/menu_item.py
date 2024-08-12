@@ -36,7 +36,9 @@ def create_menu_item(
     return created_menu_item
 
 
-def find_menu_item_by_id(db: Session, menu_item_id: int) -> models.MenuItem:
+def find_menu_item_by_id_and_shop_id(
+    db: Session, menu_item_id: int, coffee_shop_id: int
+) -> models.MenuItem:
     """
     This helper function will be used to find a specific menu item by id.
     *Args:
@@ -49,6 +51,7 @@ def find_menu_item_by_id(db: Session, menu_item_id: int) -> models.MenuItem:
         db.query(models.MenuItem)
         .filter(
             models.MenuItem.id == menu_item_id,
+            models.MenuItem.coffee_shop_id == coffee_shop_id,
             models.MenuItem.deleted == False,
         )
         .first()
@@ -56,7 +59,10 @@ def find_menu_item_by_id(db: Session, menu_item_id: int) -> models.MenuItem:
 
 
 def update_menu_item(
-    request: schemas.MenuItemPUTRequestBody, db: Session, menu_item_id: int
+    request: schemas.MenuItemPUTRequestBody,
+    db: Session,
+    menu_item_id: int,
+    admin_coffee_shop_id: int,
 ):
     """
     This helper function will be used to update a specific menu item.
@@ -64,16 +70,17 @@ def update_menu_item(
         request (schemas.MenuItemPUTRequestBody): the details of the menu item
         db (Session): the database session
         menu_item_id (int): the id of the menu item to be updated
+        admin_coffee_shop_id (int): the id of the coffee shop that the item must belongs to
     *Returns:
         the updated menu item
     """
-    found_menu_item: models.MenuItem = find_menu_item_by_id(
-        db=db, menu_item_id=menu_item_id
+    found_menu_item: models.MenuItem = find_menu_item_by_id_and_shop_id(
+        db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
     if not found_menu_item:
         raise ShopsAppException(
-            message=f"Menu Item with id {menu_item_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     # Update all fields of the menu item object based on the request
@@ -87,24 +94,27 @@ def update_menu_item(
     return found_menu_item
 
 
-def delete_menu_item_by_id(db: Session, menu_item_id: int) -> None:
+def delete_menu_item_by_id(
+    db: Session, menu_item_id: int, admin_coffee_shop_id: int
+) -> None:
     """
     This helper function will be used to delete a menu item by id.
     *Args:
         db (Session): database session
         menu_item_id (int): the id of the menu item to be deleted
+        admin_coffee_shop_id (int): the id of the coffee shop that the item must belongs to
     *Returns:
         None
     """
 
     # check if the branch belongs to this coffee shop
-    found_menu_item: models.MenuItem = find_menu_item_by_id(
-        db=db, menu_item_id=menu_item_id
+    found_menu_item: models.MenuItem = find_menu_item_by_id_and_shop_id(
+        db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
     if not found_menu_item:
         raise ShopsAppException(
-            message=f"Menu Item with id {menu_item_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     found_menu_item.deleted = True

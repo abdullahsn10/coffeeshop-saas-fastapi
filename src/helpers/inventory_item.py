@@ -65,21 +65,24 @@ def create_inventory_item(
     return created_inventory_item
 
 
-def find_inventory_item_by_id(
-    db: Session, inventory_item_id: int
+def find_inventory_item_by_id_and_shop_id(
+    db: Session, inventory_item_id: int, coffee_shop_id: int
 ) -> models.InventoryItem:
     """
-    This helper function will be used to find a specific inventory item by id.
+    This helper function will be used to find a specific inventory item by id and
+    the shop id.
     *Args:
         db (Session): the database session
         inventory_item_id (int): the id of the inventory item needed to be found
+        coffee_shop_id (int): the id of the coffee shop that the item belongs to
     *Returns:
-    the found inventory item or None if it does not exist
+        the found inventory item or None if it does not exist
     """
     return (
         db.query(models.InventoryItem)
         .filter(
             models.InventoryItem.id == inventory_item_id,
+            models.InventoryItem.coffee_shop_id == coffee_shop_id,
             models.InventoryItem.deleted == False,
         )
         .first()
@@ -87,7 +90,10 @@ def find_inventory_item_by_id(
 
 
 def update_inventory_item(
-    request: schemas.InventoryItemPUTRequestBody, db: Session, inventory_item_id: int
+    request: schemas.InventoryItemPUTRequestBody,
+    db: Session,
+    inventory_item_id: int,
+    admin_coffee_shop_id: int,
 ):
     """
     This helper function will be used to update a specific inventory item.
@@ -95,16 +101,19 @@ def update_inventory_item(
         request (schemas.InventoryItemPUTRequestBody): the details of the inventory item
         db (Session): the database session
         inventory_item_id (int): the id of the inventory item to be updated
+        admin_coffee_shop_id (int): the id of the coffee shop that the item must belongs to
     *Returns:
         the updated inventory item
     """
-    found_inventory_item: models.InventoryItem = find_inventory_item_by_id(
-        db=db, inventory_item_id=inventory_item_id
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id_and_shop_id(
+        db=db,
+        inventory_item_id=inventory_item_id,
+        coffee_shop_id=admin_coffee_shop_id,
     )
     if not found_inventory_item:
         raise ShopsAppException(
-            message=f"Inventory Item with id {inventory_item_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     # validate prod and expire date
@@ -124,24 +133,29 @@ def update_inventory_item(
     return found_inventory_item
 
 
-def delete_inventory_item_by_id(db: Session, inventory_item_id: int) -> None:
+def delete_inventory_item_by_id(
+    db: Session, inventory_item_id: int, admin_coffee_shop_id: int
+) -> None:
     """
     This helper function will be used to delete an inventory item by id.
     *Args:
         db (Session): database session
         inventory_item_id (int): the id of the inventory item to be deleted
+        admin_coffee_shop_id (int): the id of the coffee shop that the item must belongs to
     *Returns:
         None
     """
 
     # check if the branch belongs to this coffee shop
-    found_inventory_item: models.InventoryItem = find_inventory_item_by_id(
-        db=db, inventory_item_id=inventory_item_id
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id_and_shop_id(
+        db=db,
+        inventory_item_id=inventory_item_id,
+        coffee_shop_id=admin_coffee_shop_id,
     )
     if not found_inventory_item:
         raise ShopsAppException(
-            message=f"Inventory Item with id {inventory_item_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     found_inventory_item.deleted = True
