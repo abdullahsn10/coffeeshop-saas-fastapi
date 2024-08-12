@@ -65,8 +65,8 @@ def create_inventory_item(
     return created_inventory_item
 
 
-def find_inventory_item(
-    db: Session, inventory_item_id: int, coffee_shop_id: Optional[int] = None
+def find_inventory_item_by_id_and_shop_id(
+    db: Session, inventory_item_id: int, coffee_shop_id: int
 ) -> models.InventoryItem:
     """
     This helper function will be used to find a specific inventory item by id and
@@ -78,20 +78,11 @@ def find_inventory_item(
     *Returns:
         the found inventory item or None if it does not exist
     """
-    if coffee_shop_id:
-        return (
-            db.query(models.InventoryItem)
-            .filter(
-                models.InventoryItem.id == inventory_item_id,
-                models.InventoryItem.coffee_shop_id == coffee_shop_id,
-                models.InventoryItem.deleted == False,
-            )
-            .first()
-        )
     return (
         db.query(models.InventoryItem)
         .filter(
             models.InventoryItem.id == inventory_item_id,
+            models.InventoryItem.coffee_shop_id == coffee_shop_id,
             models.InventoryItem.deleted == False,
         )
         .first()
@@ -114,15 +105,15 @@ def update_inventory_item(
     *Returns:
         the updated inventory item
     """
-    found_inventory_item: models.InventoryItem = find_inventory_item(
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id_and_shop_id(
         db=db,
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
     if not found_inventory_item:
         raise ShopsAppException(
-            message=f"This item with id = {inventory_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     # validate prod and expire date
@@ -156,15 +147,16 @@ def delete_inventory_item_by_id(
     """
 
     # check if the branch belongs to this coffee shop
-    found_inventory_item: models.InventoryItem = find_inventory_item(
+    found_inventory_item: models.InventoryItem = find_inventory_item_by_id_and_shop_id(
         db=db,
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
     if not found_inventory_item:
         raise ShopsAppException(
-            message=f"This item with id = {inventory_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
+
     found_inventory_item.deleted = True
     db.commit()

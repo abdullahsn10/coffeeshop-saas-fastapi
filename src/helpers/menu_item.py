@@ -36,8 +36,8 @@ def create_menu_item(
     return created_menu_item
 
 
-def find_menu_item(
-    db: Session, menu_item_id: int, coffee_shop_id: Optional[int] = None
+def find_menu_item_by_id_and_shop_id(
+    db: Session, menu_item_id: int, coffee_shop_id: int
 ) -> models.MenuItem:
     """
     This helper function will be used to find a specific menu item by id.
@@ -47,20 +47,11 @@ def find_menu_item(
     *Returns:
     the found menu item or None if it does not exist
     """
-    if coffee_shop_id:
-        return (
-            db.query(models.MenuItem)
-            .filter(
-                models.MenuItem.id == menu_item_id,
-                models.MenuItem.coffee_shop_id == coffee_shop_id,
-                models.MenuItem.deleted == False,
-            )
-            .first()
-        )
     return (
         db.query(models.MenuItem)
         .filter(
             models.MenuItem.id == menu_item_id,
+            models.MenuItem.coffee_shop_id == coffee_shop_id,
             models.MenuItem.deleted == False,
         )
         .first()
@@ -83,14 +74,13 @@ def update_menu_item(
     *Returns:
         the updated menu item
     """
-    found_menu_item: models.MenuItem = find_menu_item(
+    found_menu_item: models.MenuItem = find_menu_item_by_id_and_shop_id(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
-
     if not found_menu_item:
         raise ShopsAppException(
-            message=f"This item with id = {menu_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     # Update all fields of the menu item object based on the request
@@ -118,13 +108,13 @@ def delete_menu_item_by_id(
     """
 
     # check if the branch belongs to this coffee shop
-    found_menu_item: models.MenuItem = find_menu_item(
+    found_menu_item: models.MenuItem = find_menu_item_by_id_and_shop_id(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
     if not found_menu_item:
         raise ShopsAppException(
-            message=f"This item with id = {menu_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this item",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
 
     found_menu_item.deleted = True
