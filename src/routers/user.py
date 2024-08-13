@@ -136,8 +136,8 @@ def get_user_endpoint(
     GET endpoint to get a user
     """
     try:
-        return user.find_user_by_id(
-            db=db, user_id=user_id, admin_coffee_shop_id=current_user.coffee_shop_id
+        return user.find_user(
+            db=db, user_id=user_id, coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
