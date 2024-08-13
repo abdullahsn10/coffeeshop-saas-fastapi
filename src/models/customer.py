@@ -1,5 +1,5 @@
 from src.settings.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint
 
 
 class Customer(Base):
@@ -11,6 +11,10 @@ class Customer(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    phone_no = Column(String, unique=True, nullable=False)
+    phone_no = Column(String, nullable=False)
     coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))
     deleted = Column(Boolean, default=False)
+
+    __table_args__ = (
+        UniqueConstraint("phone_no", "coffee_shop_id", name="unique_phone_shop"),
+    )

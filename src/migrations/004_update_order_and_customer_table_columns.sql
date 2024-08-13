@@ -22,3 +22,16 @@ ALTER COLUMN status TYPE order_status USING status::order_status;
 ALTER TABLE "customer"
 ADD COLUMN coffee_shop_id INT,
 ADD FOREIGN KEY (coffee_shop_id) REFERENCES coffee_shop(id) ON DELETE RESTRICT;
+
+-- drop the unique constraint from the customer phone no only
+ALTER TABLE customer
+DROP CONSTRAINT customer_phone_no_key;
+
+-- add unique constraint on a combination of phone_no with shop_id
+ALTER TABLE customer
+ADD CONSTRAINT unique_phone_shop
+UNIQUE (phone_no, coffee_shop_id);
+
+
+
+
