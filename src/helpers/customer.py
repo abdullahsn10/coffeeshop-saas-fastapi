@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from src import schemas, models
 
 
-def get_customer(
+def find_customer(
     db: Session, phone_no: str, coffee_shop_id: int = None
 ) -> models.Customer:
     """
@@ -41,7 +41,7 @@ def create_customer(
     *Returns:
         the Customer instance
     """
-    customer_instance = get_customer(
+    customer_instance = find_customer(
         db, phone_no=request.phone_no, coffee_shop_id=coffee_shop_id
     )
     if not customer_instance:
