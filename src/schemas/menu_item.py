@@ -37,3 +37,12 @@ class MenuItemInPOSTOrderRequestBody(BaseModel):
 
     id: int
     quantity: int
+
+
+class MenuItemInGETOrderResponseBody(MenuItemInPOSTOrderRequestBody):
+    """
+    pydantic schema for MenuItem in In GET Order response body
+    """
+
+    class Config:
+        orm_mode = True

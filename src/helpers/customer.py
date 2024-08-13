@@ -52,3 +52,20 @@ def create_customer(
         db.commit()
         db.refresh(customer_instance)
     return customer_instance
+
+
+def get_customer_phone_no(db: Session, customer_id: int) -> str:
+    """
+    This helper function used to get the phone_no of a customer by customer id.
+    *Args:
+        db (Session): SQLAlchemy Session object
+        customer_id (int): id of the customer
+    *Returns:
+        the phone_no of the customer
+    """
+    result = (
+        db.query(models.Customer.phone_no)
+        .filter(models.Customer.id == customer_id)
+        .first()
+    )
+    return result[0]

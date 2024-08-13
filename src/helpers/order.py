@@ -108,3 +108,70 @@ def place_an_order(
         customer_phone_no=created_customer_instance.phone_no,
         status=created_order.status,
     )
+
+
+def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models.Order:
+    """
+    This helper function used to find a specific order
+    *Args:
+        order_id (int): the order id needed to be found
+        db (Session): a database session
+        coffee_shop_id (int): id of the coffee shop to find the order for
+    """
+    if not coffee_shop_id:
+        found_order = db.query(models.Order).filter(models.Order.id == order_id).first()
+
+    else:
+        found_order = (
+            db.query(models.Order)
+            .filter(
+                models.Order.id == order_id,
+                models.Order.customer_id == models.Customer.id,
+                models.Customer.coffee_shop_id == coffee_shop_id,
+            )
+            .first()
+        )
+    if not found_order:
+        raise ShopsAppException(
+            message=f"This order does with id ={order_id} not exist",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return found_order
+
+
+def get_order_details(
+    order_id: int, db: Session, coffee_shop_id: int
+) -> schemas.OrderGETResponse:
+    """
+    This helper function used to get the order along with its details
+    *Args:
+        order_id (int): the order id needed to be found
+        db (Session): a database session
+        coffee_shop_id (int): id of the coffee shop to find the order for
+    *Returns:
+        OrderGETResponse instance contains the order details
+    """
+
+    found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
+
+    order_items: list[schemas.MenuItemInGETOrderResponseBody] = [
+        schemas.MenuItemInGETOrderResponseBody(
+            id=order_item.item_id,
+            quantity=order_item.quantity,
+        )
+        for order_item in db.query(models.OrderItem)
+        .filter(models.OrderItem.order_id == found_order.id)
+        .all()
+    ]
+
+    customer_phone_no = customer.get_customer_phone_no(
+        db=db, customer_id=found_order.customer_id
+    )
+    return schemas.OrderGETResponse(
+        id=found_order.id,
+        status=found_order.status,
+        order_items=order_items,
+        issue_date=found_order.issue_date,
+        issuer_id=found_order.issuer_id,
+        customer_phone_no=customer_phone_no,
+    )
