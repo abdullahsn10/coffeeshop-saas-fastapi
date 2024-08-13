@@ -15,6 +15,7 @@ class Customer(Base):
     coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))
     deleted = Column(Boolean, default=False)
 
+    # adding uniqueness constraint for phone and coffee_shop
     __table_args__ = (
         UniqueConstraint("phone_no", "coffee_shop_id", name="unique_phone_shop"),
     )
