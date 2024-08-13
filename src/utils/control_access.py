@@ -18,8 +18,8 @@ def check_if_user_can_access_shop(user_coffee_shop_id: int, target_coffee_shop_i
     """
     if user_coffee_shop_id != target_coffee_shop_id:
         raise ShopsAppException(
-            message="You are not authorized to make changes on this shop",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # unauthorized error
+            message=f"Coffee shop with this id ={target_coffee_shop_id} does not exist.",
+            status_code=status.HTTP_404_NOT_FOUND,  # unauthorized error
         )
 
 
@@ -42,6 +42,6 @@ def check_if_user_belongs_to_this_coffee_shop(
     )
     if not user_instance:
         raise ShopsAppException(
-            message="You are not authorized to show or make changes on this user",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,  # un authorized exception
         )
