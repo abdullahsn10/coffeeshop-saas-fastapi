@@ -77,7 +77,7 @@ def place_an_order(
     db: Session,
 ) -> schemas.OrderPOSTResponseBody:
     """
-    This helper function used to create an order
+    This helper function used to place an order
     *Args:
         request (schemas.OrderPOSTRequestBody): details of the order
         coffee_shop_id (int): id of the coffee shop to create the order for
