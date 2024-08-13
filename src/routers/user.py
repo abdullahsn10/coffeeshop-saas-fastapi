@@ -136,6 +136,7 @@ def get_user_endpoint(
     GET endpoint to get a user
     """
     try:
+        #test
         return user.find_user_by_id(
             db=db, user_id=user_id, admin_coffee_shop_id=current_user.coffee_shop_id
         )
