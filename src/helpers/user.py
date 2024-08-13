@@ -86,11 +86,9 @@ def create_user(
     return created_user_instance
 
 
-def find_user_by_id(
-    user_id: int, db: Session, coffee_shop_id: int = None
-) -> models.User:
+def find_user(user_id: int, db: Session, coffee_shop_id: int = None) -> models.User:
     """
-    This helper function used to get a user by id.
+    This helper function used to get a user by id, coffee_shop_id, ..etc
     *Args:
         user_id (int): The user id.
         db (Session): A database session.
@@ -113,6 +111,29 @@ def find_user_by_id(
         )
         .first()
     )
+
+
+def find_user_by_id(
+    user_id: int, db: Session, admin_coffee_shop_id: int
+) -> models.User:
+    """
+    This helper function used to get a user by id ,and it wraps original find_user
+    method inside it, this method contains a validation on the existence of the user
+    ,so it can be called from endpoints directly, not as find_user
+    *Args:
+        user_id (int): The user id.
+        db (Session): A database session.
+        admin_coffee_shop_id (int): the coffee_shop_id of the admin who tries to find the user
+    *Returns:
+        the User instance if exists, None otherwise.
+    """
+    found_user = find_user(user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id)
+    if not found_user:
+        raise ShopsAppException(
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return found_user
 
 
 def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
@@ -144,7 +165,7 @@ def get_branch_id_of_user(user_id: int, db: Session) -> int:
     *Returns:
         the branch id of the user
     """
-    user = find_user_by_id(user_id=user_id, db=db)
+    user = find_user(user_id=user_id, db=db)
     return user.branch_id
 
 
@@ -186,9 +207,9 @@ def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
 
 
 def update_user(
-    user_id: int,
     request: Union[schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
     db: Session,
+    user_instance: models.User,
 ) -> models.User:
     """
     This helper function used to update a user.
@@ -199,14 +220,6 @@ def update_user(
     *Returns:
         User: The updated user.
     """
-
-    user_instance = find_user_by_id(user_id=user_id, db=db)
-    if not user_instance:
-        raise ShopsAppException(
-            message=f"User with id {user_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
     # Update all fields of the user object based on the request
     update_data = request.model_dump(
         exclude_unset=True
@@ -337,6 +350,15 @@ def full_update_user(
         UserCredentialsInResponse: The created user credentials.
     """
 
+    user_instance = find_user(
+        user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
+    )
+    if not user_instance:
+        raise ShopsAppException(
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
     validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
@@ -346,7 +368,7 @@ def full_update_user(
         updated_user_id=user_id,
     )
     # update the user
-    updated_user = update_user(request=request, db=db, user_id=user_id)
+    updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
     return schemas.UserCredentialsInResponse(
         email=updated_user.email, phone_no=updated_user.phone_no
@@ -369,6 +391,15 @@ def partial_update_user(
     *Returns:
         UserCredentialsInResponse: The updated user credentials.
     """
+    user_instance = find_user(
+        user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
+    )
+    if not user_instance:
+        raise ShopsAppException(
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
     if request.branch_id:
         # verify that the branch id belongs to the admin coffee shop
         if not coffee_shop.is_shop_has_this_branch(
@@ -397,10 +428,10 @@ def partial_update_user(
                 status_code=status.HTTP_409_CONFLICT,
             )
     # update the user
-    user_instance = update_user(request=request, db=db, user_id=user_id)
+    updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
     return schemas.UserCredentialsInResponse(
-        email=user_instance.email, phone_no=user_instance.phone_no
+        email=updated_user.email, phone_no=updated_user.phone_no
     )
 
 
@@ -412,7 +443,7 @@ def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> N
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin that the use must belongs to
     """
-    user_instance = find_user_by_id(
+    user_instance = find_user(
         user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
     )
     if not user_instance:
