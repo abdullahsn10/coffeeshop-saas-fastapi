@@ -18,8 +18,8 @@ def check_if_user_can_access_shop(user_coffee_shop_id: int, target_coffee_shop_i
     """
     if user_coffee_shop_id != target_coffee_shop_id:
         raise ShopsAppException(
-            message="You are not authorized to make changes on this shop",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # unauthorized error
+            message=f"Coffee shop with this id ={target_coffee_shop_id} does not exist.",
+            status_code=status.HTTP_404_NOT_FOUND,  # unauthorized error
         )
 
 
@@ -37,38 +37,11 @@ def check_if_user_belongs_to_this_coffee_shop(
         raise a ShopAppException if the user does not belong to the
         coffee shop.
     """
-    user_instance = user.find_user_by_id(user_id=user_id, db=db)
-    if not user_instance or not coffee_shop.is_shop_has_this_branch(
-        coffee_shop_id=coffee_shop_id, branch_id=user_instance.branch_id, db=db
-    ):
+    user_instance = user.find_user_by_id(
+        user_id=user_id, db=db, coffee_shop_id=coffee_shop_id
+    )
+    if not user_instance:
         raise ShopsAppException(
-            message="You are not authorized to show or make changes on this user",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
-        )
-
-
-def check_if_user_can_access_this_item(
-    item_id: int, db: Session, admin_coffee_shop_id: int, is_inventory_item: bool = True
-):
-    """
-    This utils function performs a logic that checks if a user can make changes on
-    an item either inventory item or menu item.
-    *Args:
-    item_id (int): The id of the item.
-    db (Session): A database session.
-    admin_coffee_shop_id (int): The coffee shop id of the admin who needs to make changes on the item.
-    *Returns:
-        raise a ShopAppException if the user is not authorized to make changes
-    """
-    if is_inventory_item:
-        found_item = inventory_item.find_inventory_item_by_id(
-            db=db, inventory_item_id=item_id
-        )
-    else:
-        found_item = menu_item.find_menu_item_by_id(db=db, menu_item_id=item_id)
-
-    if not found_item or found_item.coffee_shop_id != admin_coffee_shop_id:
-        raise ShopsAppException(
-            message="You are not authorized to show or make changes on this item",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,  # un authorized exception
         )

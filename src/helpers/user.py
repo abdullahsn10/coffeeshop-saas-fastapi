@@ -86,18 +86,31 @@ def create_user(
     return created_user_instance
 
 
-def find_user_by_id(user_id: int, db: Session) -> models.User:
+def find_user_by_id(
+    user_id: int, db: Session, coffee_shop_id: int = None
+) -> models.User:
     """
     This helper function used to get a user by id.
     *Args:
         user_id (int): The user id.
         db (Session): A database session.
+        coffee_shop_id (int): optional argument, if it's provided then this means to put it in the query also
     *Returns:
         the User instance if exists, None otherwise.
     """
+    if not coffee_shop_id:
+        return (
+            db.query(models.User)
+            .filter(models.User.id == user_id, models.User.deleted == False)
+            .first()
+        )
     return (
         db.query(models.User)
-        .filter(models.User.id == user_id, models.User.deleted == False)
+        .filter(
+            models.User.id == user_id,
+            models.User.branch_id == models.Branch.id,
+            models.Branch.coffee_shop_id == coffee_shop_id,
+        )
         .first()
     )
 
@@ -391,18 +404,21 @@ def partial_update_user(
     )
 
 
-def delete_user_by_id(user_id: int, db: Session) -> None:
+def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> None:
     """
     This helper function used to delete a user by id.
     *Args:
         user_id (int): The user id.
         db (Session): A database session.
+        admin_coffee_shop_id (int): The coffee shop id of the admin that the use must belongs to
     """
-    user_instance = find_user_by_id(user_id=user_id, db=db)
+    user_instance = find_user_by_id(
+        user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
+    )
     if not user_instance:
         raise ShopsAppException(
-            message=f"User with id {user_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
+            message="You are not authorized to show or make changes on this user",
+            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
         )
     user_instance.deleted = True
     db.commit()
