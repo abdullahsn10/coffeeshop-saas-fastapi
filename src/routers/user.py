@@ -6,7 +6,6 @@ from src.helpers import user
 from src.settings.database import get_db
 from src.security.oauth2 import require_role
 from src.exceptions.exception import *
-from src.utils.control_access import check_if_user_belongs_to_this_coffee_shop
 
 router = APIRouter(tags=["Users"], prefix="/users")
 
@@ -48,9 +47,6 @@ def full_update_user_endpoint(
     PUT endpoint to fully update a user
     """
     try:
-        check_if_user_belongs_to_this_coffee_shop(
-            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
-        )
         return user.full_update_user(
             request=request,
             db=db,
@@ -98,9 +94,6 @@ def partial_update_user_endpoint(
     PATCH endpoint to partially update a user
     """
     try:
-        check_if_user_belongs_to_this_coffee_shop(
-            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
-        )
         return user.partial_update_user(
             request=request,
             db=db,
@@ -143,10 +136,9 @@ def get_user_endpoint(
     GET endpoint to get a user
     """
     try:
-        check_if_user_belongs_to_this_coffee_shop(
-            user_id=user_id, db=db, coffee_shop_id=current_user.coffee_shop_id
+        return user.find_user(
+            db=db, user_id=user_id, coffee_shop_id=current_user.coffee_shop_id
         )
-        return user.find_user_by_id(db=db, user_id=user_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:

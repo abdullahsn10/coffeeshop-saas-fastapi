@@ -86,11 +86,9 @@ def create_user(
     return created_user_instance
 
 
-def find_user_by_id(
-    user_id: int, db: Session, coffee_shop_id: int = None
-) -> models.User:
+def find_user(user_id: int, db: Session, coffee_shop_id: int = None) -> models.User:
     """
-    This helper function used to get a user by id.
+    This helper function used to get a user by id, coffee_shop_id, ..etc
     *Args:
         user_id (int): The user id.
         db (Session): A database session.
@@ -99,20 +97,27 @@ def find_user_by_id(
         the User instance if exists, None otherwise.
     """
     if not coffee_shop_id:
-        return (
+        found_user = (
             db.query(models.User)
             .filter(models.User.id == user_id, models.User.deleted == False)
             .first()
         )
-    return (
-        db.query(models.User)
-        .filter(
-            models.User.id == user_id,
-            models.User.branch_id == models.Branch.id,
-            models.Branch.coffee_shop_id == coffee_shop_id,
+    else:
+        found_user = (
+            db.query(models.User)
+            .filter(
+                models.User.id == user_id,
+                models.User.branch_id == models.Branch.id,
+                models.Branch.coffee_shop_id == coffee_shop_id,
+            )
+            .first()
         )
-        .first()
-    )
+    if not found_user:
+        raise ShopsAppException(
+            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return found_user
 
 
 def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
@@ -133,19 +138,6 @@ def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models
         )
         .all()
     )
-
-
-def get_branch_id_of_user(user_id: int, db: Session) -> int:
-    """
-    This helper function used to get the branch id of the user.
-    *Args:
-        user_id (int): The user id.
-        db (Session): A database session.
-    *Returns:
-        the branch id of the user
-    """
-    user = find_user_by_id(user_id=user_id, db=db)
-    return user.branch_id
 
 
 def get_user_by_email(email: str, db: Session) -> models.User:
@@ -186,9 +178,9 @@ def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
 
 
 def update_user(
-    user_id: int,
     request: Union[schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
     db: Session,
+    user_instance: models.User,
 ) -> models.User:
     """
     This helper function used to update a user.
@@ -199,14 +191,6 @@ def update_user(
     *Returns:
         User: The updated user.
     """
-
-    user_instance = find_user_by_id(user_id=user_id, db=db)
-    if not user_instance:
-        raise ShopsAppException(
-            message=f"User with id {user_id} could not be found",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
     # Update all fields of the user object based on the request
     update_data = request.model_dump(
         exclude_unset=True
@@ -337,6 +321,10 @@ def full_update_user(
         UserCredentialsInResponse: The created user credentials.
     """
 
+    user_instance = find_user(
+        user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
+    )
+
     validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
@@ -346,7 +334,7 @@ def full_update_user(
         updated_user_id=user_id,
     )
     # update the user
-    updated_user = update_user(request=request, db=db, user_id=user_id)
+    updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
     return schemas.UserCredentialsInResponse(
         email=updated_user.email, phone_no=updated_user.phone_no
@@ -369,6 +357,10 @@ def partial_update_user(
     *Returns:
         UserCredentialsInResponse: The updated user credentials.
     """
+    user_instance = find_user(
+        user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
+    )
+
     if request.branch_id:
         # verify that the branch id belongs to the admin coffee shop
         if not coffee_shop.is_shop_has_this_branch(
@@ -397,10 +389,10 @@ def partial_update_user(
                 status_code=status.HTTP_409_CONFLICT,
             )
     # update the user
-    user_instance = update_user(request=request, db=db, user_id=user_id)
+    updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
     return schemas.UserCredentialsInResponse(
-        email=user_instance.email, phone_no=user_instance.phone_no
+        email=updated_user.email, phone_no=updated_user.phone_no
     )
 
 
@@ -412,14 +404,9 @@ def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> N
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin that the use must belongs to
     """
-    user_instance = find_user_by_id(
+    user_instance = find_user(
         user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
     )
-    if not user_instance:
-        raise ShopsAppException(
-            message="You are not authorized to show or make changes on this user",
-            status_code=status.HTTP_401_UNAUTHORIZED,  # un authorized exception
-        )
     user_instance.deleted = True
     db.commit()
     db.refresh(user_instance)
@@ -441,12 +428,12 @@ def restore_deleted_user_to_a_branch(
 
     # check if the user belongs to the user coffee shop
     if request.phone_no:
-        restored_user = coffee_shop.get_user_in_the_shop_by_phone(
+        restored_user = coffee_shop.get_user_in_the_shop(
             user_phone_no=request.phone_no, db=db, coffee_shop_id=admin_coffee_shop_id
         )
 
     elif request.email:
-        restored_user = coffee_shop.get_user_in_the_shop_by_email(
+        restored_user = coffee_shop.get_user_in_the_shop(
             user_email=request.email, db=db, coffee_shop_id=admin_coffee_shop_id
         )
     else:
@@ -457,8 +444,8 @@ def restore_deleted_user_to_a_branch(
 
     if not restored_user:
         raise ShopsAppException(
-            message="You are not authorized to make changes on this user",
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            message="This user does not exist in your shop",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # check if the provided branch belongs to the admin's coffee shop
@@ -466,8 +453,8 @@ def restore_deleted_user_to_a_branch(
         coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
     ):
         raise ShopsAppException(
-            message="You are not authorized to make changes on this branch",
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            message="This branch does not exist in your shop",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     # check if the user deleted
