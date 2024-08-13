@@ -17,3 +17,8 @@ CREATE TYPE order_status AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CLOSED
 -- Alter the status column to use the enum type
 ALTER TABLE "order"
 ALTER COLUMN status TYPE order_status USING status::order_status;
+
+-- Add coffee_shop_id column to the customer table
+ALTER TABLE "customer"
+ADD COLUMN coffee_shop_id INT,
+ADD FOREIGN KEY (coffee_shop_id) REFERENCES coffee_shop(id) ON DELETE RESTRICT;
