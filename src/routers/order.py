@@ -107,7 +107,7 @@ def update_order_status_endpoint(
     ),
 ):
     """
-    PATCH endpoint to update a specific order's status
+    PATCH endpoint to update the status of a specific order
     """
     try:
         order.update_order_status(

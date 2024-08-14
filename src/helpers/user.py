@@ -120,7 +120,7 @@ def find_user(user_id: int, db: Session, coffee_shop_id: int = None) -> models.U
     return found_user
 
 
-def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
+def find_all_users(coffee_shop_id: int, db: Session) -> list[models.User]:
     """
     This helper function used to get all users in a specific coffee shop.
     *Args:
@@ -392,7 +392,7 @@ def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> N
     db.refresh(user_instance)
 
 
-def restore_deleted_user_to_a_branch(
+def restore_deleted_user(
     db: Session,
     request: schemas.UserInRestorePATCHRequestBody,
     admin_coffee_shop_id: int,

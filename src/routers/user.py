@@ -71,7 +71,7 @@ def restore_deleted_user_endpoint(
     PATCH endpoint to restore a deleted user to a specific branch
     """
     try:
-        return user.restore_deleted_user_to_a_branch(
+        return user.restore_deleted_user(
             db=db, request=request, admin_coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:
@@ -117,9 +117,7 @@ def get_all_users_endpoint(
     GET endpoint to get all users
     """
     try:
-        return user.find_all_users_in_this_shop(
-            db=db, coffee_shop_id=current_user.coffee_shop_id
-        )
+        return user.find_all_users(db=db, coffee_shop_id=current_user.coffee_shop_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
