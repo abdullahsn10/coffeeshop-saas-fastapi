@@ -117,6 +117,8 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
         order_id (int): the order id needed to be found
         db (Session): a database session
         coffee_shop_id (int): id of the coffee shop to find the order for
+    *Returns:
+        the found order if it exists, raise ShopsAppException otherwise
     """
     if not coffee_shop_id:
         found_order = db.query(models.Order).filter(models.Order.id == order_id).first()
@@ -139,8 +141,44 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
     return found_order
 
 
+def find_all_orders(
+    db: Session, coffee_shop_id: int, status: str = None
+) -> list[models.Order]:
+    """
+    This helper function used to find all orders in the coffee_shop with specific status
+    *Args:
+        db (Session): a database session
+        coffee_shop_id (int): id of the coffee shop to find the orders for
+        status (str): the status of the orders to find
+
+    *Returns:
+        a list of all orders in the coffee_shop
+    """
+    if not status:
+        return (
+            db.query(models.Order)
+            .filter(
+                models.Order.customer_id == models.Customer.id,
+                models.Customer.coffee_shop_id == coffee_shop_id,
+            )
+            .all()
+        )
+    return (
+        db.query(models.Order)
+        .filter(
+            models.Order.status == status,
+            models.Order.customer_id == models.Customer.id,
+            models.Customer.coffee_shop_id == coffee_shop_id,
+        )
+        .all()
+    )
+
+
 def get_order_details(
-    order_id: int, db: Session, coffee_shop_id: int
+    db: Session,
+    coffee_shop_id: int,
+    order_id: int = None,
+    found_order: models.Order = None,
 ) -> schemas.OrderGETResponse:
     """
     This helper function used to get the order along with its details
@@ -148,11 +186,15 @@ def get_order_details(
         order_id (int): the order id needed to be found
         db (Session): a database session
         coffee_shop_id (int): id of the coffee shop to find the order for
+        found_order (optional Order): this is the order object needed to obtain its details, it is optional
+        if the order was found before calling this function
     *Returns:
         OrderGETResponse instance contains the order details
     """
-
-    found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
+    if not found_order and order_id is not None:
+        found_order = find_order(
+            order_id=order_id, coffee_shop_id=coffee_shop_id, db=db
+        )
 
     order_items: list[schemas.MenuItemInGETOrderResponseBody] = [
         schemas.MenuItemInGETOrderResponseBody(
@@ -175,3 +217,24 @@ def get_order_details(
         issuer_id=found_order.issuer_id,
         customer_phone_no=customer_phone_no,
     )
+
+
+def get_all_orders_details(
+    status: str, db: Session, coffee_shop_id: int
+) -> list[schemas.OrderGETResponse]:
+    """
+    This helper function used to get all orders along with their details
+    *Args:
+        status (str): the status of the orders needed to be retrieved
+        db (Session): a database session
+        coffee_shop_id (int): id of the coffee shop to find the order for
+    *Returns:
+        OrderGETResponse instance contains the order details
+    """
+
+    all_orders = find_all_orders(db=db, status=status, coffee_shop_id=coffee_shop_id)
+    all_orders_with_details: list[schemas.OrderGETResponse] = [
+        get_order_details(db=db, coffee_shop_id=coffee_shop_id, found_order=order)
+        for order in all_orders
+    ]
+    return all_orders_with_details

@@ -34,3 +34,6 @@ class OrderGETResponse(BaseModel):
     status: OrderStatus
     customer_phone_no: str
     order_items: list[MenuItemInGETOrderResponseBody]
+
+    class Config:
+        orm_mode = True
