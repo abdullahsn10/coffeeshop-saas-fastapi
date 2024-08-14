@@ -241,6 +241,27 @@ def get_all_orders_details(
     return all_orders_with_details
 
 
+def validate_status_change(new_status: OrderStatus, user_role: UserRole) -> None:
+    """
+    This helper function used to validate the change in the status of the order
+    *Args:
+        new_status (OrderStatus): the new status of the order
+        user_role (UserRole): the role of the user who tries to change the statu
+    *Returns:
+        raise a ShopsAppException in case of violation
+    """
+    role_status_mapping = {
+        UserRole.CASHIER: [OrderStatus.CLOSED],
+        UserRole.CHEF: [OrderStatus.IN_PROGRESS, OrderStatus.COMPLETED],
+    }
+
+    if new_status not in role_status_mapping[user_role]:
+        raise ShopsAppException(
+            message="Unacceptable change of the status",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 def update_order_status(
     request: schemas.OrderStatusPATCHRequestBody,
     order_id: int,
@@ -260,38 +281,9 @@ def update_order_status(
         user_role (UserRole): the role of the user needs to update the order's status
         db (Session): a database session
     *Returns:
-
+        None in case of success, raise ShopsAppException in case of any failure
     """
     found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
-    if user_role == UserRole.CASHIER:
-        if not (
-            found_order.status == OrderStatus.COMPLETED
-            and request.status == OrderStatus.CLOSED
-        ):
-            raise ShopsAppException(
-                message="Unacceptable change of the status",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-
-    elif user_role == UserRole.CHEF:
-        if not (
-            (
-                found_order.status == OrderStatus.PENDING
-                and request.status == OrderStatus.IN_PROGRESS
-            )
-            or (
-                found_order.status == OrderStatus.IN_PROGRESS
-                and request.status == OrderStatus.COMPLETED
-            )
-        ):
-            raise ShopsAppException(
-                message="Unacceptable change of the status",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
-    else:
-        raise ShopsAppException(
-            message="You are not allowed to change the order status",
-            status_code=status.HTTP_401_UNAUTHORIZED,
-        )
+    validate_status_change(new_status=request.status, user_role=user_role)
     found_order.status = request.status
     db.commit()
