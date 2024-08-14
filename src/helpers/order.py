@@ -147,8 +147,8 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
 def find_all_orders(
     db: Session,
     coffee_shop_id: int,
-    limit: int,
-    offset: int,
+    size: int,
+    page: int,
     status: list[OrderStatus] = None,
 ) -> tuple[list[models.Order], int]:
     """
@@ -158,8 +158,8 @@ def find_all_orders(
         db (Session): a database session
         coffee_shop_id (int): id of the coffee shop to find the orders for
         status (str): the status of the orders to find
-        limit (int): the maximum number of orders to return
-        offset (int): the offset to skip orders
+        size (int): the maximum number of orders to return
+        page (int): the page number, needed to calculate the offset to skip
     *Returns:
         a list of all orders in the coffee_shop within specific page and limit,
         in addition to the total count of orders in the system
@@ -175,10 +175,11 @@ def find_all_orders(
         query = query.filter(models.Order.status.in_(status))
 
     # total count of orders
-    total_count: int = query.with_entities(func.count(models.Order.id)).scalar()
+    total_count: int = query.count()
 
     # apply pagination
-    orders = query.offset(offset).limit(limit).all()
+    offset = (page - 1) * size
+    orders = query.offset(offset).limit(size).all()
 
     return orders, total_count
 
@@ -207,7 +208,7 @@ def get_order_details(
 
     order_items: list[schemas.MenuItemInGETOrderResponseBody] = [
         schemas.MenuItemInGETOrderResponseBody(
-            id=order_item.item_id,
+            item_id=order_item.item_id,
             quantity=order_item.quantity,
         )
         for order_item in db.query(models.OrderItem)
@@ -215,9 +216,9 @@ def get_order_details(
         .all()
     ]
 
-    customer_phone_no = customer.get_customer_phone_no(
+    customer_phone_no = customer.find_customer(
         db=db, customer_id=found_order.customer_id
-    )
+    ).phone_no
     return schemas.OrderGETResponse(
         id=found_order.id,
         status=found_order.status,
@@ -240,11 +241,9 @@ def get_all_orders_details(
     *Returns:
         OrderGETResponse instance contains the order details
     """
-    # calculate offset
-    offset = (page - 1) * size
 
     all_orders, total_count = find_all_orders(
-        db=db, status=status, coffee_shop_id=coffee_shop_id, limit=size, offset=offset
+        db=db, status=status, coffee_shop_id=coffee_shop_id, size=size, page=page
     )
     all_orders_with_details: list[schemas.OrderGETResponse] = [
         get_order_details(db=db, coffee_shop_id=coffee_shop_id, found_order=order)

@@ -3,29 +3,28 @@ from src import schemas, models
 
 
 def find_customer(
-    db: Session, phone_no: str, coffee_shop_id: int = None
+    db: Session,
+    phone_no: str = None,
+    customer_id: int = None,
+    coffee_shop_id: int = None,
 ) -> models.Customer:
     """
-    This helper function used to get a customer by phone number and shop id.
+    This helper function used to get a customer by phone number/id and shop id.
     *Args:
         db (Session): SQLAlchemy Session object
         phone_no (str): Phone number to get a customer by phone number
         coffee_shop_id (int): Optional argument, to get the customer in this shop
+        customer_id (int): the id of the customer
     *Returns:
         the Customer instance if exists, None otherwise.
     """
+    if customer_id:
+        query = db.query(models.Customer).filter(models.Customer.id == customer_id)
+    else:
+        query = db.query(models.Customer).filter(models.Customer.phone_no == phone_no)
     if coffee_shop_id:
-        return (
-            db.query(models.Customer)
-            .filter(
-                models.Customer.phone_no == phone_no,
-                models.Customer.coffee_shop_id == coffee_shop_id,
-            )
-            .first()
-        )
-    return (
-        db.query(models.Customer).filter(models.Customer.phone_no == phone_no).first()
-    )
+        query = query.filter(models.Customer.coffee_shop_id == coffee_shop_id)
+    return query.first()
 
 
 def create_customer(
@@ -52,20 +51,3 @@ def create_customer(
         db.commit()
         db.refresh(customer_instance)
     return customer_instance
-
-
-def get_customer_phone_no(db: Session, customer_id: int) -> str:
-    """
-    This helper function used to get the phone_no of a customer by customer id.
-    *Args:
-        db (Session): SQLAlchemy Session object
-        customer_id (int): id of the customer
-    *Returns:
-        the phone_no of the customer
-    """
-    result = (
-        db.query(models.Customer.phone_no)
-        .filter(models.Customer.id == customer_id)
-        .first()
-    )
-    return result[0]
