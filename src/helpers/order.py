@@ -1,5 +1,7 @@
 import datetime
 from datetime import datetime
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi import status
 from src import schemas, models
@@ -143,36 +145,42 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
 
 
 def find_all_orders(
-    db: Session, coffee_shop_id: int, status: str = None
-) -> list[models.Order]:
+    db: Session,
+    coffee_shop_id: int,
+    limit: int,
+    offset: int,
+    status: list[OrderStatus] = None,
+) -> tuple[list[models.Order], int]:
     """
     This helper function used to find all orders in the coffee_shop with specific status
+    and apply a pagination on the resulted orders
     *Args:
         db (Session): a database session
         coffee_shop_id (int): id of the coffee shop to find the orders for
         status (str): the status of the orders to find
-
+        limit (int): the maximum number of orders to return
+        offset (int): the offset to skip orders
     *Returns:
-        a list of all orders in the coffee_shop
+        a list of all orders in the coffee_shop within specific page and limit,
+        in addition to the total count of orders in the system
     """
-    if not status:
-        return (
-            db.query(models.Order)
-            .filter(
-                models.Order.customer_id == models.Customer.id,
-                models.Customer.coffee_shop_id == coffee_shop_id,
-            )
-            .all()
-        )
-    return (
+
+    query = (
         db.query(models.Order)
-        .filter(
-            models.Order.status == status,
-            models.Order.customer_id == models.Customer.id,
-            models.Customer.coffee_shop_id == coffee_shop_id,
-        )
-        .all()
+        .join(models.Customer)
+        .filter(models.Customer.coffee_shop_id == coffee_shop_id)
     )
+
+    if status:
+        query = query.filter(models.Order.status.in_(status))
+
+    # total count of orders
+    total_count: int = query.with_entities(func.count(models.Order.id)).scalar()
+
+    # apply pagination
+    orders = query.offset(offset).limit(limit).all()
+
+    return orders, total_count
 
 
 def get_order_details(
@@ -221,8 +229,8 @@ def get_order_details(
 
 
 def get_all_orders_details(
-    status: str, db: Session, coffee_shop_id: int
-) -> list[schemas.OrderGETResponse]:
+    status: list[OrderStatus], db: Session, coffee_shop_id: int, page: int, size: int
+) -> schemas.PaginatedOrderResponse:
     """
     This helper function used to get all orders along with their details
     *Args:
@@ -232,13 +240,22 @@ def get_all_orders_details(
     *Returns:
         OrderGETResponse instance contains the order details
     """
+    # calculate offset
+    offset = (page - 1) * size
 
-    all_orders = find_all_orders(db=db, status=status, coffee_shop_id=coffee_shop_id)
+    all_orders, total_count = find_all_orders(
+        db=db, status=status, coffee_shop_id=coffee_shop_id, limit=size, offset=offset
+    )
     all_orders_with_details: list[schemas.OrderGETResponse] = [
         get_order_details(db=db, coffee_shop_id=coffee_shop_id, found_order=order)
         for order in all_orders
     ]
-    return all_orders_with_details
+    return schemas.PaginatedOrderResponse(
+        total_count=total_count,
+        page=page,
+        page_size=size,
+        orders=all_orders_with_details,
+    )
 
 
 def validate_status_change(new_status: OrderStatus, user_role: UserRole) -> None:

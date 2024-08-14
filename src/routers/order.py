@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, status
+from typing import Optional, List
+from fastapi import APIRouter, HTTPException, Depends, Response, status, Query
 from src import schemas
 from src.models.user import UserRole
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from src.settings.database import get_db
 from src.exceptions.exception import ShopsAppException
 from src.security.oauth2 import require_role
 from src.helpers import order
+from src.models.order import OrderStatus
 
 router = APIRouter(
     tags=["Orders"],
@@ -41,9 +43,11 @@ def place_an_order_endpoint(
         )
 
 
-@router.get("/", response_model=list[schemas.OrderGETResponse])
+@router.get("/", response_model=schemas.PaginatedOrderResponse)
 def get_all_orders_endpoint(
-    order_status: str = "PENDING",
+    order_status: Optional[List[OrderStatus]] = Query(default=None),
+    page: int = 1,
+    size: int = 10,
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(
         require_role([UserRole.CHEF, UserRole.CASHIER, UserRole.ADMIN])
@@ -57,6 +61,8 @@ def get_all_orders_endpoint(
             status=order_status,
             db=db,
             coffee_shop_id=current_user.coffee_shop_id,
+            page=page,
+            size=size,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)

@@ -49,3 +49,14 @@ class OrderStatusPATCHRequestBody(BaseModel):
     """
 
     status: OrderStatus
+
+
+class PaginatedOrderResponse(BaseModel):
+    """
+    pydantic schema for the paginated orders in GET response body
+    """
+
+    total_count: int
+    page: int
+    page_size: int
+    orders: list[OrderGETResponse]
