@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import status
 from src import schemas, models
 from src.exceptions import ShopsAppException
-from src.helpers import customer, menu_item
+from src.helpers import customer, menu_item, user, coffee_shop
 from src.models.order import OrderStatus
 from src.models.user import UserRole
 
@@ -136,7 +136,7 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
         )
     if not found_order:
         raise ShopsAppException(
-            message=f"This order does with id ={order_id} not exist",
+            message=f"This order with id ={order_id} does not exist",
             status_code=status.HTTP_404_NOT_FOUND,
         )
     return found_order
@@ -272,7 +272,7 @@ def update_order_status(
 ) -> None:
     """
     This helper function used to update an order status, it applies conditions on
-    the old status and new status of the order along with the role of the user who
+    the new status of the order along with the role of the user who
     tries to change this status
     *Args:
         request (schemas.OrderStatusPATCHRequestBody): the request body which contains the new status
@@ -286,4 +286,32 @@ def update_order_status(
     found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
     validate_status_change(new_status=request.status, user_role=user_role)
     found_order.status = request.status
+    db.commit()
+
+
+def assign_order(
+    order_id: int,
+    chef_id: int,
+    coffee_shop_id: int,
+    db: Session,
+) -> None:
+    """
+    This helper function used to assign a specific order to a specific chef
+    *Args:
+        order_id (int): the order id needed to be assigned
+        chef_id (int): the chef id needed to be assigned to
+        coffee_shop_id(int): the coffee shop id of the user and the order
+        db (Session): a database session
+    *Returns:
+        None in case of success, raise ShopsAppException in case of any failure
+    """
+    found_user = user.find_user(user_id=chef_id, db=db, coffee_shop_id=coffee_shop_id)
+    if found_user.role != UserRole.CHEF:
+        raise ShopsAppException(
+            message="The assigner must be a chef",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    found_order = find_order(order_id=order_id, db=db, coffee_shop_id=coffee_shop_id)
+    found_order.assigner_id = found_user.id
     db.commit()

@@ -157,26 +157,6 @@ def get_user_by_email(email: str, db: Session) -> models.User:
     )
 
 
-def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
-    """
-    This helper function will be used to get the coffee shop id of the user
-    *Args:
-        db (Session): A database session.
-        user_id (int): The user id.
-    *Returns:
-        the coffee shop id of the user
-    """
-    # join query to get coffee shop id
-    result = (
-        db.query(models.CoffeeShop.id)
-        .filter(models.User.id == user_id)
-        .filter(models.User.branch_id == models.Branch.id)
-        .filter(models.Branch.coffee_shop_id == models.CoffeeShop.id)
-        .first()
-    )
-    return result[0]
-
-
 def update_user(
     request: Union[schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
     db: Session,

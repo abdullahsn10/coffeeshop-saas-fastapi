@@ -118,3 +118,30 @@ def update_order_status_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+@router.patch("/{order_id}/assign/{user_id}")
+def assign_order_endpoints(
+    order_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(
+        require_role([UserRole.ADMIN, UserRole.CHEF])
+    ),
+):
+    """
+    PATCH endpoint to assign a specific order to a specific user (CHEF)
+    """
+    try:
+        order.assign_order(
+            order_id=order_id,
+            chef_id=user_id,
+            coffee_shop_id=current_user.coffee_shop_id,
+            db=db,
+        )
+    except ShopsAppException as se:
+        raise HTTPException(status_code=se.status_code, detail=se.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
