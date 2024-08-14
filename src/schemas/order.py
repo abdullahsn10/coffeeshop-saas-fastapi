@@ -28,6 +28,10 @@ class OrderPOSTResponseBody(BaseModel):
 
 
 class OrderGETResponse(BaseModel):
+    """
+    pydantic schema for the order in GET response body
+    """
+
     id: int
     issue_date: datetime
     issuer_id: int
@@ -37,3 +41,11 @@ class OrderGETResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class OrderStatusPATCHRequestBody(BaseModel):
+    """
+    pydantic schema for the order Status in PATCH request body
+    """
+
+    status: OrderStatus
