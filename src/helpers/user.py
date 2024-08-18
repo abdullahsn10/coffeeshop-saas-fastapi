@@ -314,13 +314,13 @@ def partial_update_user(
     if request.phone_no:
         if is_user_exist(phone_no=request.phone_no, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
-                message="User with this phone number already exists",
+                message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
             )
     if request.email:
         if is_user_exist(email=request.email, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
-                message="User with this phone number already exists",
+                message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
             )
     # update the user
