@@ -68,7 +68,7 @@ def verify_user_credentials_and_gen_token(
         The JWT token for the user.
     """
     # get the user using the email
-    current_user = user.find_user(email=request.username, db=db)
+    current_user = user.find_user(email=request.username, db=db, raise_exc=False)
 
     if not current_user:
         raise ShopsAppException(
@@ -86,7 +86,9 @@ def verify_user_credentials_and_gen_token(
 
     # create jwt and return it
     # get the coffee shop id
-    coffee_shop_id = branch.get_coffee_shop_id(db=db, branch_id=current_user.branch_id)
+    coffee_shop_id = branch.find_branch(
+        branch_id=current_user.branch_id, db=db
+    ).coffee_shop_id
     access_token = generate_token_for_user(
         user=current_user, coffee_shop_id=coffee_shop_id
     )

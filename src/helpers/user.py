@@ -69,13 +69,18 @@ def find_user(
     email: str = None,
     coffee_shop_id: int = None,
     exclude_deleted: bool = True,
+    raise_exc: bool = True,
 ) -> models.User:
     """
     This helper function used to get a user by id, coffee_shop_id, ..etc
     *Args:
         user_id (int): The user id.
+        phone (str): The phone number of the user.
+        email (str): The email of the user.
         db (Session): A database session.
         coffee_shop_id (int): optional argument, if it's provided then this means to put it in the query also
+        exclude_deleted (bool): optional argument, default True, if it's True then the query will exclude the deleted users
+        raise_exc (bool): optional argument, default True, if it's True then the function will raise an exception if the user not found
     *Returns:
         the User instance if exists, None otherwise.
     """
@@ -98,9 +103,9 @@ def find_user(
     if exclude_deleted:
         query = query.filter(models.User.deleted == False)
     found_user = query.first()
-    if not found_user:
+    if raise_exc and not found_user:
         raise ShopsAppException(
-            message=f"This user with id = {user_id} does not exist",
+            message=f"This user does not exist",
             status_code=status.HTTP_404_NOT_FOUND,
         )
     return found_user
