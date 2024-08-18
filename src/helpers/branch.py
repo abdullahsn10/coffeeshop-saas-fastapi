@@ -18,11 +18,7 @@ def create_branch(
         the created branch
     """
     # check if the shop exists
-    if not coffee_shop.find_coffee_shop_by_id(db=db, coffee_shop_id=coffee_shop_id):
-        raise ShopsAppException(
-            message=f"Coffe Shop with id = {coffee_shop_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     created_branch = models.Branch(
         name=request.name, location=request.location, coffee_shop_id=coffee_shop_id
@@ -31,31 +27,6 @@ def create_branch(
     db.commit()
     db.refresh(created_branch)
     return created_branch
-
-
-def get_coffee_shop_id(branch_id: int, db: Session) -> int:
-    """
-    This helper function will be used to get the coffee shop id from the branch id
-    *Args:
-        branch_id (int): branch id
-        db (Session): database session
-    *Returns:
-        coffee shop id
-    """
-    branch = db.query(models.Branch).filter(models.Branch.id == branch_id).first()
-    return branch.coffee_shop_id
-
-
-def get_all_users_in_branch(branch_id: int, db: Session) -> list[models.User]:
-    """
-    This helper function will be used to get all users in a branch
-    *Args:
-        branch_id (int): branch id
-        db (Session): database session
-    *Returns:
-        list of users in the branch
-    """
-    return db.query(models.User).filter(models.User.branch_id == branch_id).all()
 
 
 def is_branch_have_users(branch_id: int, db: Session) -> bool:
@@ -67,12 +38,10 @@ def is_branch_have_users(branch_id: int, db: Session) -> bool:
     *Returns:
         True if the branch has users, False otherwise
     """
-    return (
-        db.query(models.User)
-        .filter(models.User.branch_id == branch_id, models.User.deleted == False)
-        .first()
-        is not None
+    query = db.query(models.User).filter(
+        models.User.branch_id == branch_id, models.User.deleted == False
     )
+    return query.first() is not None
 
 
 def find_branch(
@@ -159,3 +128,18 @@ def delete_branch(db: Session, branch_id: int, coffee_shop_id: int) -> None:
         )
     found_branch.deleted = True
     db.commit()
+
+
+def find_all_branches(db: Session, coffee_shop_id: int) -> list[models.Branch]:
+    """
+    This helper function will be used to get all branches in a coffee shop
+    *Args:
+        db (Session): database session
+        coffee_shop_id (int): coffee shop id
+    *Returns:
+        a dictionary of all branches in the coffee shop
+    """
+    query = db.query(models.Branch).filter(
+        models.Branch.coffee_shop_id == coffee_shop_id, models.Branch.deleted == False
+    )
+    return query.all()

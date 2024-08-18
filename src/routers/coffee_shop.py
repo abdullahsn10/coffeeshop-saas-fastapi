@@ -141,9 +141,7 @@ def get_all_branches_endpoint(
             user_coffee_shop_id=current_user.coffee_shop_id,
             target_coffee_shop_id=coffee_shop_id,
         )
-        return coffee_shop.get_all_branches_in_the_shop(
-            coffee_shop_id=coffee_shop_id, db=db
-        )
+        return branch.find_all_branches(coffee_shop_id=coffee_shop_id, db=db)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:

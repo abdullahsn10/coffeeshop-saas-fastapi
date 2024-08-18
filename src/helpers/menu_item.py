@@ -18,11 +18,7 @@ def create_menu_item(
         the created menu item
     """
     # check if the shop exists (Additional Logic, only to ensure everything is okay)
-    if not coffee_shop.find_coffee_shop_by_id(db=db, coffee_shop_id=coffee_shop_id):
-        raise ShopsAppException(
-            message=f"Coffe Shop with id = {coffee_shop_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     created_menu_item = models.MenuItem(
         name=request.name,
