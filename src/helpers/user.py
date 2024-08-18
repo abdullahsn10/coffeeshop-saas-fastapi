@@ -120,7 +120,7 @@ def find_user(user_id: int, db: Session, coffee_shop_id: int = None) -> models.U
     return found_user
 
 
-def find_all_users_in_this_shop(coffee_shop_id: int, db: Session) -> list[models.User]:
+def find_all_users(coffee_shop_id: int, db: Session) -> list[models.User]:
     """
     This helper function used to get all users in a specific coffee shop.
     *Args:
@@ -155,26 +155,6 @@ def get_user_by_email(email: str, db: Session) -> models.User:
         .filter(models.User.email == email, models.User.deleted == False)
         .first()
     )
-
-
-def get_coffee_shop_id_of_user(db: Session, user_id: int) -> int:
-    """
-    This helper function will be used to get the coffee shop id of the user
-    *Args:
-        db (Session): A database session.
-        user_id (int): The user id.
-    *Returns:
-        the coffee shop id of the user
-    """
-    # join query to get coffee shop id
-    result = (
-        db.query(models.CoffeeShop.id)
-        .filter(models.User.id == user_id)
-        .filter(models.User.branch_id == models.Branch.id)
-        .filter(models.Branch.coffee_shop_id == models.CoffeeShop.id)
-        .first()
-    )
-    return result[0]
 
 
 def update_user(
@@ -412,7 +392,7 @@ def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> N
     db.refresh(user_instance)
 
 
-def restore_deleted_user_to_a_branch(
+def restore_deleted_user(
     db: Session,
     request: schemas.UserInRestorePATCHRequestBody,
     admin_coffee_shop_id: int,

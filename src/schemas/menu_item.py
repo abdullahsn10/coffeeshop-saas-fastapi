@@ -28,3 +28,25 @@ class MenuItemPUTRequestBody(MenuItemPOSTRequestBody):
     """
 
     pass
+
+
+class MenuItemInPOSTOrderRequestBody(BaseModel):
+    """
+    pydantic schema for MenuItem in In POST Order request body
+    """
+
+    id: int
+    quantity: int
+
+
+class MenuItemInGETOrderResponseBody(BaseModel):
+    """
+    pydantic schema for MenuItem in In GET Order response body
+    """
+
+    item_id: int
+    quantity: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
