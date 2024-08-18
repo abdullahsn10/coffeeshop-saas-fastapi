@@ -109,6 +109,10 @@ class UserPOSTAndPATCHResponseBody(UserGETResponse):
 
 
 class UserInRestorePATCHRequestBody(BaseModel):
+    """
+    Pydantic schema for User PATCH request body to restore a deleted user
+    """
+
     email: Optional[str] = None
     phone_no: Optional[str] = None
     branch_id: int

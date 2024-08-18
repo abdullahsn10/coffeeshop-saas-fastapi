@@ -68,7 +68,7 @@ def verify_user_credentials_and_gen_token(
         The JWT token for the user.
     """
     # get the user using the email
-    current_user = user.get_user_by_email(db=db, email=request.username)
+    current_user = user.find_user(email=request.username, db=db)
 
     if not current_user:
         raise ShopsAppException(

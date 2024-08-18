@@ -123,23 +123,6 @@ def find_all_users(db: Session, coffee_shop_id: int = None) -> list[models.User]
     return query.all()
 
 
-def get_user_by_email(email: str, db: Session) -> models.User:
-    """
-    This helper function used to get a user by email.
-    *Args:
-        email (str): The email to check.
-        db (Session): A database session.
-
-    *Returns:
-        the User instance if exists, None otherwise.
-    """
-    return (
-        db.query(models.User)
-        .filter(models.User.email == email, models.User.deleted == False)
-        .first()
-    )
-
-
 def update_user(
     request: Union[schemas.UserPUTRequestBody, schemas.UserPATCHRequestBody],
     db: Session,
