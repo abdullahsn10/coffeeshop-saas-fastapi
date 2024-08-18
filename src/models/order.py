@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.orm import relationship
 from src.settings.database import Base
 from sqlalchemy import (
     Column,
@@ -39,3 +40,7 @@ class Order(Base):
     issuer_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     # relationship with users table (employee(chef) who take the order)
     assigner_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    # relationship with order_items table
+    items = relationship("OrderItem", back_populates="order")
+    # relationship with customer
+    customer = relationship("Customer", back_populates="orders")

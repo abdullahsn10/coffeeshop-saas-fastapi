@@ -1,14 +1,14 @@
 import datetime
 from datetime import datetime
-
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import status
 from src import schemas, models
 from src.exceptions import ShopsAppException
 from src.helpers import customer, menu_item, user, coffee_shop
 from src.models.order import OrderStatus
 from src.models.user import UserRole
+from src.settings.settings import ROLE_STATUS_MAPPING
 
 
 def validate_order_items(
@@ -123,19 +123,16 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
     *Returns:
         the found order if it exists, raise ShopsAppException otherwise
     """
-    if not coffee_shop_id:
-        found_order = db.query(models.Order).filter(models.Order.id == order_id).first()
-
-    else:
-        found_order = (
-            db.query(models.Order)
-            .filter(
-                models.Order.id == order_id,
-                models.Order.customer_id == models.Customer.id,
-                models.Customer.coffee_shop_id == coffee_shop_id,
-            )
-            .first()
+    query = (
+        db.query(models.Order)
+        .options(joinedload(models.Order.items), joinedload(models.Order.customer))
+        .filter(models.Order.id == order_id)
+    )
+    if coffee_shop_id:
+        query = query.join(models.Customer).filter(
+            models.Customer.coffee_shop_id == coffee_shop_id
         )
+    found_order = query.first()
     if not found_order:
         raise ShopsAppException(
             message=f"This order with id ={order_id} does not exist",
@@ -165,11 +162,14 @@ def find_all_orders(
         in addition to the total count of orders in the system
     """
 
-    query = (
-        db.query(models.Order)
-        .join(models.Customer)
-        .filter(models.Customer.coffee_shop_id == coffee_shop_id)
+    query = db.query(models.Order).options(
+        joinedload(models.Order.items), joinedload(models.Order.customer)
     )
+
+    if coffee_shop_id:
+        query = query.join(models.Customer).filter(
+            models.Customer.coffee_shop_id == coffee_shop_id
+        )
 
     if status:
         query = query.filter(models.Order.status.in_(status))
@@ -188,7 +188,6 @@ def get_order_details(
     db: Session,
     coffee_shop_id: int,
     order_id: int = None,
-    found_order: models.Order = None,
 ) -> schemas.OrderGETResponse:
     """
     This helper function used to get the order along with its details
@@ -196,36 +195,17 @@ def get_order_details(
         order_id (int): the order id needed to be found
         db (Session): a database session
         coffee_shop_id (int): id of the coffee shop to find the order for
-        found_order (optional Order): this is the order object needed to obtain its details, it is optional
-        if the order was found before calling this function
     *Returns:
         OrderGETResponse instance contains the order details
     """
-    if not found_order and order_id is not None:
-        found_order = find_order(
-            order_id=order_id, coffee_shop_id=coffee_shop_id, db=db
-        )
-
-    order_items: list[schemas.MenuItemInGETOrderResponseBody] = [
-        schemas.MenuItemInGETOrderResponseBody(
-            item_id=order_item.item_id,
-            quantity=order_item.quantity,
-        )
-        for order_item in db.query(models.OrderItem)
-        .filter(models.OrderItem.order_id == found_order.id)
-        .all()
-    ]
-
-    customer_phone_no = customer.find_customer(
-        db=db, customer_id=found_order.customer_id
-    ).phone_no
+    found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
     return schemas.OrderGETResponse(
         id=found_order.id,
-        status=found_order.status,
-        order_items=order_items,
         issue_date=found_order.issue_date,
         issuer_id=found_order.issuer_id,
-        customer_phone_no=customer_phone_no,
+        status=found_order.status,
+        phone_no=found_order.customer.phone_no,
+        items=found_order.items,
     )
 
 
@@ -237,27 +217,36 @@ def get_all_orders_details(
     *Args:
         status (str): the status of the orders needed to be retrieved
         db (Session): a database session
-        coffee_shop_id (int): id of the coffee shop to find the order for
+        coffee_shop_id (int): id of the coffee shop to find the orders for
+        page (int): the page number, needed to calculate the offset to skip
+        size (int): the maximum limit of orders to return in the page
     *Returns:
-        OrderGETResponse instance contains the order details
+        PaginatedOrderResponse instance contains the orders details
     """
 
     all_orders, total_count = find_all_orders(
         db=db, status=status, coffee_shop_id=coffee_shop_id, size=size, page=page
     )
-    all_orders_with_details: list[schemas.OrderGETResponse] = [
-        get_order_details(db=db, coffee_shop_id=coffee_shop_id, found_order=order)
+    orders: list[schemas.OrderGETResponse] = [
+        schemas.OrderGETResponse(
+            id=order.id,
+            issue_date=order.issue_date,
+            issuer_id=order.issuer_id,
+            status=order.status,
+            phone_no=order.customer.phone_no,
+            items=order.items,
+        )
         for order in all_orders
     ]
     return schemas.PaginatedOrderResponse(
         total_count=total_count,
         page=page,
         page_size=size,
-        orders=all_orders_with_details,
+        orders=orders,
     )
 
 
-def validate_status_change(new_status: OrderStatus, user_role: UserRole) -> None:
+def validate_status_change(new_status: str, user_role: str) -> None:
     """
     This helper function used to validate the change in the status of the order
     *Args:
@@ -266,12 +255,8 @@ def validate_status_change(new_status: OrderStatus, user_role: UserRole) -> None
     *Returns:
         raise a ShopsAppException in case of violation
     """
-    role_status_mapping = {
-        UserRole.CASHIER: [OrderStatus.CLOSED],
-        UserRole.CHEF: [OrderStatus.IN_PROGRESS, OrderStatus.COMPLETED],
-    }
 
-    if new_status not in role_status_mapping[user_role]:
+    if new_status not in ROLE_STATUS_MAPPING[user_role]:
         raise ShopsAppException(
             message="Unacceptable change of the status",
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -281,9 +266,8 @@ def validate_status_change(new_status: OrderStatus, user_role: UserRole) -> None
 def update_order_status(
     request: schemas.OrderStatusPATCHRequestBody,
     order_id: int,
-    user_role: UserRole,
+    user_role: str,
     coffee_shop_id: int,
-    user_id: int,
     db: Session,
 ) -> None:
     """
@@ -300,7 +284,7 @@ def update_order_status(
         None in case of success, raise ShopsAppException in case of any failure
     """
     found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
-    validate_status_change(new_status=request.status, user_role=user_role)
+    validate_status_change(new_status=request.status.value, user_role=user_role)
     found_order.status = request.status
     db.commit()
 
@@ -321,6 +305,7 @@ def assign_order(
     *Returns:
         None in case of success, raise ShopsAppException in case of any failure
     """
+    found_order = find_order(order_id=order_id, db=db, coffee_shop_id=coffee_shop_id)
     found_user = user.find_user(user_id=chef_id, db=db, coffee_shop_id=coffee_shop_id)
     if found_user.role != UserRole.CHEF:
         raise ShopsAppException(
@@ -328,6 +313,5 @@ def assign_order(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    found_order = find_order(order_id=order_id, db=db, coffee_shop_id=coffee_shop_id)
     found_order.assigner_id = found_user.id
     db.commit()

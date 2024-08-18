@@ -36,11 +36,12 @@ class OrderGETResponse(BaseModel):
     issue_date: datetime
     issuer_id: int
     status: OrderStatus
-    customer_phone_no: str
-    order_items: list[MenuItemInGETOrderResponseBody]
+    phone_no: str
+    items: list[MenuItemInGETOrderResponseBody]
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 class OrderStatusPATCHRequestBody(BaseModel):

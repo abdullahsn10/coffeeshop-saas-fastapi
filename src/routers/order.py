@@ -44,7 +44,7 @@ def place_an_order_endpoint(
 
 
 @router.get("/", response_model=schemas.PaginatedOrderResponse)
-def get_all_orders_endpoint(
+def get_all_orders_details_endpoint(
     order_status: Optional[List[OrderStatus]] = Query(default=None),
     page: int = 1,
     size: int = 10,
@@ -77,7 +77,7 @@ def get_order_details_endpoint(
     order_id: int,
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(
-        require_role([UserRole.ORDER_RECEIVER, UserRole.CASHIER])
+        require_role([UserRole.CHEF, UserRole.CASHIER, UserRole.ADMIN])
     ),
 ):
     """
@@ -115,8 +115,7 @@ def update_order_status_endpoint(
             coffee_shop_id=current_user.coffee_shop_id,
             db=db,
             order_id=order_id,
-            user_role=current_user.role,
-            user_id=current_user.id,
+            user_role=current_user.role.value,
         )
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
