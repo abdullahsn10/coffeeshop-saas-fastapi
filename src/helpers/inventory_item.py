@@ -9,7 +9,7 @@ from src.exceptions.exception import *
 def validate_prod_and_expire_date_in_item(
     prod_date: date,
     expire_date: date,
-):
+) -> None:
     """
     This helper function will be used to validate the production and
     expiration date.
@@ -74,24 +74,38 @@ def find_inventory_item(
     *Returns:
         the found inventory item or None if it does not exist
     """
-    if coffee_shop_id:
-        return (
-            db.query(models.InventoryItem)
-            .filter(
-                models.InventoryItem.id == inventory_item_id,
-                models.InventoryItem.coffee_shop_id == coffee_shop_id,
-                models.InventoryItem.deleted == False,
-            )
-            .first()
-        )
-    return (
-        db.query(models.InventoryItem)
-        .filter(
-            models.InventoryItem.id == inventory_item_id,
-            models.InventoryItem.deleted == False,
-        )
-        .first()
+    query = db.query(models.InventoryItem).filter(
+        models.InventoryItem.id == inventory_item_id,
+        models.InventoryItem.deleted == False,
     )
+    if coffee_shop_id:
+        query = query.filter(models.InventoryItem.coffee_shop_id == coffee_shop_id)
+
+    found_inventory_item = query.first()
+    if not found_inventory_item:
+        raise ShopsAppException(
+            message=f"This item with id = {inventory_item_id} does not exist",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return found_inventory_item
+
+
+def find_all_inventory_items(
+    coffee_shop_id: int, db: Session
+) -> list[models.InventoryItem]:
+    """
+    This helper function will be used to find all inventory items in a specific coffee shop.
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop
+        db (Session): the database session
+    *Returns:
+        the found inventory items
+    """
+    query = db.query(models.InventoryItem).filter(
+        models.InventoryItem.deleted == False,
+        models.InventoryItem.coffee_shop_id == coffee_shop_id,
+    )
+    return query.all()
 
 
 def update_inventory_item(
@@ -99,7 +113,7 @@ def update_inventory_item(
     db: Session,
     inventory_item_id: int,
     admin_coffee_shop_id: int,
-):
+) -> models.InventoryItem:
     """
     This helper function will be used to update a specific inventory item.
     *Args:
@@ -115,12 +129,6 @@ def update_inventory_item(
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
-    if not found_inventory_item:
-        raise ShopsAppException(
-            message=f"This item with id = {inventory_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
     # validate prod and expire date
     validate_prod_and_expire_date_in_item(
         prod_date=request.prod_date,
@@ -138,7 +146,7 @@ def update_inventory_item(
     return found_inventory_item
 
 
-def delete_inventory_item_by_id(
+def delete_inventory_item(
     db: Session, inventory_item_id: int, admin_coffee_shop_id: int
 ) -> None:
     """
@@ -157,10 +165,6 @@ def delete_inventory_item_by_id(
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
-    if not found_inventory_item:
-        raise ShopsAppException(
-            message=f"This item with id = {inventory_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+
     found_inventory_item.deleted = True
     db.commit()

@@ -45,7 +45,7 @@ def get_all_inventory_items_endpoint(
     GET endpoint to get all inventory items in the shop
     """
     try:
-        return coffee_shop.get_all_inventory_items_in_the_shop(
+        return inventory_item.find_all_inventory_items(
             db=db, coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:
@@ -93,7 +93,7 @@ def delete_inventory_item_endpoint(
     """
     try:
         response.status_code = status.HTTP_204_NO_CONTENT
-        inventory_item.delete_inventory_item_by_id(
+        inventory_item.delete_inventory_item(
             inventory_item_id=inventory_item_id,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,
