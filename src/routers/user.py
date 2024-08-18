@@ -10,7 +10,7 @@ from src.exceptions.exception import *
 router = APIRouter(tags=["Users"], prefix="/users")
 
 
-@router.post("/", response_model=schemas.UserCredentialsInResponse)
+@router.post("/", response_model=schemas.UserPOSTAndPATCHResponseBody)
 def create_user_endpoint(
     request: schemas.UserPOSTRequestBody,
     response: Response,
@@ -35,7 +35,7 @@ def create_user_endpoint(
         )
 
 
-@router.put("/{user_id}", response_model=schemas.UserCredentialsInResponse)
+@router.put("/{user_id}", response_model=schemas.UserPOSTAndPATCHResponseBody)
 def full_update_user_endpoint(
     user_id: int,
     request: schemas.UserPUTRequestBody,
@@ -157,7 +157,7 @@ def delete_user_endpoint(
     """
     try:
         response.status_code = status.HTTP_204_NO_CONTENT
-        user.delete_user_by_id(
+        user.delete_user(
             db=db, user_id=user_id, admin_coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:

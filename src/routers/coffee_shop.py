@@ -116,9 +116,7 @@ def delete_branch_endpoint(
             target_coffee_shop_id=coffee_shop_id,
         )
         response.status_code = status.HTTP_204_NO_CONTENT
-        branch.delete_branch_by_id(
-            db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
-        )
+        branch.delete_branch(db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:

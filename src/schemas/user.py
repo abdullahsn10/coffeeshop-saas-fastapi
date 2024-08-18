@@ -99,6 +99,15 @@ class UserGETResponse(BaseModel):
         orm_mode = True
 
 
+class UserPOSTAndPATCHResponseBody(UserGETResponse):
+    """
+    Pydantic schema for User POST and PATCH response
+    """
+
+    class Config:
+        orm_mode = True
+
+
 class UserInRestorePATCHRequestBody(BaseModel):
     email: Optional[str] = None
     phone_no: Optional[str] = None

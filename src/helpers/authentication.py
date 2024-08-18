@@ -28,9 +28,9 @@ def signup(
     admin_user_instance: schemas.UserBase = request.admin_details
 
     # check email or phone duplicates
-    if user.is_user_exists_by_email(
-        email=admin_user_instance.email, db=db
-    ) or user.is_user_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
+    if user.is_user_exist(email=admin_user_instance.email, db=db) or user.is_user_exist(
+        phone_no=admin_user_instance.phone_no, db=db
+    ):
         raise ShopsAppException(
             message="User with this email or phone number already exists.",
             status_code=status.HTTP_400_BAD_REQUEST,
