@@ -15,7 +15,6 @@ class Customer(Base):
     name = Column(String, nullable=False)
     phone_no = Column(String, nullable=False)
     coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))
-    deleted = Column(Boolean, default=False)
     # relationship with order
     orders = relationship("Order", back_populates="customer")
 
