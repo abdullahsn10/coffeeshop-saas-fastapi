@@ -11,3 +11,5 @@ router = APIRouter(
     tags=["Customers"],
     prefix="/customer",
 )
+
+# setup customer endpoints
