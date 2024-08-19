@@ -99,9 +99,18 @@ class UserGETResponse(BaseModel):
         orm_mode = True
 
 
-class UserPOSTAndPATCHResponseBody(UserGETResponse):
+class UserPOSTResponse(UserGETResponse):
     """
     Pydantic schema for User POST and PATCH response
+    """
+
+    class Config:
+        orm_mode = True
+
+
+class UserPUTAndPATCHResponse(UserGETResponse):
+    """
+    Pydantic schema for User PATCH response
     """
 
     class Config:

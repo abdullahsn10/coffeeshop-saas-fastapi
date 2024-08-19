@@ -78,7 +78,7 @@ def place_an_order(
     coffee_shop_id: int,
     issuer_id: int,
     db: Session,
-) -> schemas.OrderPOSTResponseBody:
+) -> schemas.OrderPOSTResponse:
     """
     This helper function used to place an order
     *Args:
@@ -106,7 +106,7 @@ def place_an_order(
         order_items=order_items,
     )
 
-    return schemas.OrderPOSTResponseBody(
+    return schemas.OrderPOSTResponse(
         id=created_order.id,
         customer_phone_no=created_customer_instance.phone_no,
         status=created_order.status,

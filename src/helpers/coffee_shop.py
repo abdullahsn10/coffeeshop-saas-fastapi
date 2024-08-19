@@ -45,7 +45,7 @@ def find_coffee_shop(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
 
 def update_coffee_shop(
     request: schemas.CoffeeShopBase, db: Session, coffee_shop_id: int
-) -> models.CoffeeShop:
+) -> schemas.CoffeeShopPUTResponse:
     """
     This helper function used to fully update a coffee shop
     *Args:
@@ -53,7 +53,7 @@ def update_coffee_shop(
         db (Session): database session
         coffee_shop_id (int): coffee shop id
     *Returns:
-        The updated coffee shop instance
+        CoffeeShopPUTResponse: updated coffee shop details
     """
 
     found_coffee_shop: models.CoffeeShop = find_coffee_shop(
@@ -67,46 +67,8 @@ def update_coffee_shop(
         setattr(found_coffee_shop, field, value)
     db.commit()
     db.refresh(found_coffee_shop)
-    return found_coffee_shop
-
-
-def get_all_inventory_items_in_the_shop(
-    db: Session, coffee_shop_id: int
-) -> list[models.InventoryItem]:
-    """
-    This helper function used to get all inventory items of a coffee shop
-    *Args:
-        coffee_shop_id (int): the id of the coffee shop needed to retrieve inventory items from
-        db (Session): database session
-    *Returns:
-        a list of inventory items
-    """
-    return (
-        db.query(models.InventoryItem)
-        .filter(
-            models.InventoryItem.coffee_shop_id == coffee_shop_id,
-            models.InventoryItem.deleted == False,
-        )
-        .all()
-    )
-
-
-def get_all_menu_items_in_the_shop(
-    db: Session, coffee_shop_id: int
-) -> list[models.MenuItem]:
-    """
-    This helper function used to get all menu items of a coffee shop
-    *Args:
-        coffee_shop_id (int): the id of the coffee shop needed to retrieve menu items from
-        db (Session): database session
-    *Returns:
-        a list of menu items
-    """
-    return (
-        db.query(models.MenuItem)
-        .filter(
-            models.MenuItem.coffee_shop_id == coffee_shop_id,
-            models.MenuItem.deleted == False,
-        )
-        .all()
+    return schemas.CoffeeShopPUTResponse(
+        name=found_coffee_shop.name,
+        location=found_coffee_shop.location,
+        contact_info=found_coffee_shop.contact_info,
     )

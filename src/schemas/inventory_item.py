@@ -34,3 +34,21 @@ class InventoryItemPUTRequestBody(InventoryItemPOSTRequestBody):
     """
 
     pass
+
+
+class InventoryItemPOSTResponse(InventoryItemGETResponse):
+    """
+    pydantic schema for InventoryItem in POST Response
+    """
+
+    class Config:
+        orm_mode = True
+
+
+class InventoryItemPUTResponse(InventoryItemGETResponse):
+    """
+    pydantic schema for InventoryItem in PUT Response
+    """
+
+    class Config:
+        orm_mode = True

@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.put("/{coffee_shop_id}", response_model=schemas.CoffeeShopBase)
+@router.put("/{coffee_shop_id}", response_model=schemas.CoffeeShopPUTResponse)
 def update_coffee_shop_endpoint(
     coffee_shop_id: int,
     request: schemas.CoffeeShopBase,
@@ -39,7 +39,9 @@ def update_coffee_shop_endpoint(
         )
 
 
-@router.post("/{coffee_shop_id}/branches", response_model=schemas.BranchResponseBody)
+@router.post(
+    "/{coffee_shop_id}/branches", response_model=schemas.BranchPOSTAndPUTResponse
+)
 def create_branch_endpoint(
     coffee_shop_id: int,
     request: schemas.BranchBase,
@@ -69,7 +71,8 @@ def create_branch_endpoint(
 
 
 @router.put(
-    "/{coffee_shop_id}/branches/{branch_id}", response_model=schemas.BranchResponseBody
+    "/{coffee_shop_id}/branches/{branch_id}",
+    response_model=schemas.BranchPOSTAndPUTResponse,
 )
 def update_branch_endpoint(
     coffee_shop_id: int,
@@ -126,7 +129,7 @@ def delete_branch_endpoint(
 
 
 @router.get(
-    "/{coffee_shop_id}/branches", response_model=list[schemas.BranchResponseBody]
+    "/{coffee_shop_id}/branches", response_model=list[schemas.BranchGETResponse]
 )
 def get_all_branches_endpoint(
     coffee_shop_id: int,

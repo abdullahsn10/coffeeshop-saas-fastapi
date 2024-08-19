@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.InventoryItemGETResponse)
+@router.post("/", response_model=schemas.InventoryItemPOSTResponse)
 def create_inventory_item_endpoint(
     request: schemas.InventoryItemPOSTRequestBody,
     response: Response,
@@ -56,7 +56,7 @@ def get_all_inventory_items_endpoint(
         )
 
 
-@router.put("/{inventory_item_id}", response_model=schemas.InventoryItemGETResponse)
+@router.put("/{inventory_item_id}", response_model=schemas.InventoryItemPUTResponse)
 def update_inventory_item_endpoint(
     request: schemas.InventoryItemPUTRequestBody,
     inventory_item_id: int,

@@ -183,8 +183,16 @@ def validate_user_on_create_update(
 
     # verify that the branch id belongs to the admin coffee shop
     found_branch = branch.find_branch(
-        db=db, branch_id=branch_id, coffee_shop_id=admin_coffee_shop_id
+        db=db,
+        branch_id=branch_id,
+        coffee_shop_id=admin_coffee_shop_id,
+        raise_exc=False,
     )
+    if not found_branch:
+        raise ShopsAppException(
+            message=f"Branch with id={branch_id} does not exist",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     if is_user_exist(
         email=user_email,
@@ -201,7 +209,7 @@ def validate_and_create_user(
     request: schemas.UserPOSTRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
-) -> schemas.UserPOSTAndPATCHResponseBody:
+) -> schemas.UserPOSTResponse:
     """
     This helper function used to validate and create a new user.
     *Args:
@@ -209,7 +217,7 @@ def validate_and_create_user(
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin who created the user.
     *Returns:
-        UserPOSTAndPATCHResponseBody: The created user details.
+        UserPOSTResponse: The created user details.
     """
 
     validate_user_on_create_update(
@@ -234,7 +242,7 @@ def validate_and_create_user(
         db=db,
     )
 
-    return schemas.UserPOSTAndPATCHResponseBody(
+    return schemas.UserPOSTResponse(
         id=created_user.id,
         first_name=created_user.first_name,
         last_name=created_user.last_name,
@@ -250,7 +258,7 @@ def full_update_user(
     db: Session,
     admin_coffee_shop_id: int,
     user_id: int,
-) -> schemas.UserPOSTAndPATCHResponseBody:
+) -> schemas.UserPUTAndPATCHResponse:
     """
     This helper function used to validate and update user.
     *Args:
@@ -259,7 +267,7 @@ def full_update_user(
         admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
         user_id (int): the id of the user needed to be updated
     *Returns:
-        UserPOSTAndPATCHResponseBody: The updated user details.
+        UserPUTAndPATCHResponse: The updated user details.
     """
 
     user_instance = find_user(
@@ -277,7 +285,7 @@ def full_update_user(
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserPOSTAndPATCHResponseBody(
+    return schemas.UserPUTAndPATCHResponse(
         id=updated_user.id,
         first_name=updated_user.first_name,
         last_name=updated_user.last_name,
@@ -294,7 +302,7 @@ def partial_update_user(
     admin_coffee_shop_id: int,
     creation: bool = True,
     user_id: int = None,
-) -> schemas.UserPOSTAndPATCHResponseBody:
+) -> schemas.UserPUTAndPATCHResponse:
     """
     This helper function used to validate and partially update a new user.
     *Args:
@@ -302,7 +310,7 @@ def partial_update_user(
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
     *Returns:
-        UserCredentialsInResponse: The updated user credentials.
+        UserPUTAndPATCHResponse: The updated user credentials.
     """
     user_instance = find_user(
         user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
@@ -311,8 +319,16 @@ def partial_update_user(
     if request.branch_id:
         # verify that the branch id belongs to the admin coffee shop
         found_branch = branch.find_branch(
-            db=db, branch_id=request.branch_id, coffee_shop_id=admin_coffee_shop_id
+            db=db,
+            branch_id=request.branch_id,
+            coffee_shop_id=admin_coffee_shop_id,
+            raise_exc=False,
         )
+        if not found_branch:
+            raise ShopsAppException(
+                message=f"Branch with id={request.branch_id} does not exist",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
 
     # verify email and phone uniqueness and exclude the user to be updated
     # from the check
@@ -331,7 +347,7 @@ def partial_update_user(
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserPOSTAndPATCHResponseBody(
+    return schemas.UserPUTAndPATCHResponse(
         id=updated_user.id,
         first_name=updated_user.first_name,
         last_name=updated_user.last_name,
@@ -404,6 +420,12 @@ def validate_user_on_restore(
         db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
     )
 
+    if not found_branch:
+        raise ShopsAppException(
+            message=f"Branch with id={branch_id} does not exist",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
     # check if the user deleted
     if not restored_user.deleted:
         raise ShopsAppException(
@@ -417,7 +439,7 @@ def restore_deleted_user(
     db: Session,
     request: schemas.UserInRestorePATCHRequestBody,
     admin_coffee_shop_id: int,
-):
+) -> schemas.UserPUTAndPATCHResponse:
     """
     This helper function used to restore a deleted user to a branch by his/her phone
     or email.
@@ -425,6 +447,8 @@ def restore_deleted_user(
         db (Session): A database session.
         request (schemas.UserInRestorePATCHRequestBody): The user details to restore
         admin_coffee_shop_id (int): the coffee shop id of the admin need to restore the user
+    *Returns:
+        UserPUTAndPATCHResponse: The restored user details.
     """
     restored_user = validate_user_on_restore(
         phone_no=request.phone_no,
@@ -437,4 +461,12 @@ def restore_deleted_user(
     restored_user.branch_id = request.branch_id
     db.commit()
     db.refresh(restored_user)
-    return restored_user
+    return schemas.UserPUTAndPATCHResponse(
+        id=restored_user.id,
+        first_name=restored_user.first_name,
+        last_name=restored_user.last_name,
+        email=restored_user.email,
+        phone_no=restored_user.phone_no,
+        role=restored_user.role,
+        branch_id=restored_user.branch_id,
+    )

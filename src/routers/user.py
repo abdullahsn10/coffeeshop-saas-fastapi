@@ -10,7 +10,7 @@ from src.exceptions.exception import *
 router = APIRouter(tags=["Users"], prefix="/users")
 
 
-@router.post("/", response_model=schemas.UserPOSTAndPATCHResponseBody)
+@router.post("/", response_model=schemas.UserPOSTResponse)
 def create_user_endpoint(
     request: schemas.UserPOSTRequestBody,
     response: Response,
@@ -35,7 +35,7 @@ def create_user_endpoint(
         )
 
 
-@router.put("/{user_id}", response_model=schemas.UserPOSTAndPATCHResponseBody)
+@router.put("/{user_id}", response_model=schemas.UserPUTAndPATCHResponse)
 def full_update_user_endpoint(
     user_id: int,
     request: schemas.UserPUTRequestBody,
@@ -61,7 +61,7 @@ def full_update_user_endpoint(
         )
 
 
-@router.patch("/restore", response_model=schemas.UserGETResponse)
+@router.patch("/restore", response_model=schemas.UserPUTAndPATCHResponse)
 def restore_deleted_user_endpoint(
     request: schemas.UserInRestorePATCHRequestBody,
     db: Session = Depends(get_db),
@@ -82,7 +82,7 @@ def restore_deleted_user_endpoint(
         )
 
 
-@router.patch("/{user_id}", response_model=schemas.UserCredentialsInResponse)
+@router.patch("/{user_id}", response_model=schemas.UserPUTAndPATCHResponse)
 def partial_update_user_endpoint(
     user_id: int,
     request: schemas.UserPATCHRequestBody,

@@ -13,3 +13,12 @@ class CoffeeShopBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class CoffeeShopPUTResponse(CoffeeShopBase):
+    """
+    Pydantic schema for CoffeeShop, it includes all coffee shop details
+    """
+
+    class Config:
+        orm_mode = True
