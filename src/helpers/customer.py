@@ -21,10 +21,14 @@ def find_customer(
     *Returns:
         the Customer instance if exists, None otherwise.
     """
+    query = db.query(models.Customer)
+
     if customer_id:
-        query = db.query(models.Customer).filter(models.Customer.id == customer_id)
+        query = query.filter(models.Customer.id == customer_id)
+    elif phone_no:
+        query = query.filter(models.Customer.phone_no == phone_no)
     else:
-        query = db.query(models.Customer).filter(models.Customer.phone_no == phone_no)
+        raise Exception("phone_no or customer_id must be provided")
     if coffee_shop_id:
         query = query.filter(models.Customer.coffee_shop_id == coffee_shop_id)
     if exclude_customer_ids:
@@ -134,3 +138,50 @@ def update_customer(
         phone_no=customer_instance.phone_no,
         coffee_shop_id=customer_instance.coffee_shop_id,
     )
+
+
+def find_all_customers(
+    db: Session,
+    coffee_shop_id: int,
+    customer_phone_no: str = None,
+    customer_name: str = None,
+) -> list[models.Customer]:
+    """
+    This helper function used to get all customers or querying by phone number or name
+    *Args:
+        db (Session): SQLAlchemy Session object
+        customer_phone_no (str): Phone number to get a customer by phone number
+        customer_name (str): Name to get a customer by name
+    *Returns:
+        list[models.Customer]: List of customers
+    """
+    query = db.query(models.Customer).filter(
+        models.Customer.coffee_shop_id == coffee_shop_id
+    )
+    if customer_phone_no:
+        query = query.filter(models.Customer.phone_no == customer_phone_no)
+    if customer_name:
+        query = query.filter(models.Customer.name == customer_name)
+    return query.all()
+
+
+def get_customer_details(
+    db: Session, customer_id: int, coffee_shop_id: int
+) -> models.Customer:
+    """
+    This helper function used to get a customer by id
+    *Args:
+        db (Session): SQLAlchemy Session object
+        customer_id (int): the id of the customer
+        coffee_shop_id (int): the id of the coffee shop in which the customer exists
+    *Returns:
+        the customer instance if exists, raise exception otherwise
+    """
+    found_customer = find_customer(
+        db=db, customer_id=customer_id, coffee_shop_id=coffee_shop_id
+    )
+    if not found_customer:
+        raise ShopsAppException(
+            message="Customer Not found", status_code=status.HTTP_404_NOT_FOUND
+        )
+    return found_customer
