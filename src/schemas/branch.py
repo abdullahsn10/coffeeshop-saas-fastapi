@@ -10,7 +10,7 @@ class BranchBase(BaseModel):
     location: str
 
 
-class BranchResponseBody(BranchBase):
+class BranchResponse(BranchBase):
     """
     Pydantic model for Branch in ResponseBody, with id and coffee_shop_id
     """

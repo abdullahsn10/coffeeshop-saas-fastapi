@@ -11,7 +11,7 @@ class MenuItemPOSTRequestBody(BaseModel):
     price: float
 
 
-class MenuItemGETResponse(BaseModel):
+class MenuItemResponse(BaseModel):
     """
     pydantic schema for MenuItem in response of any HTTP request
     """

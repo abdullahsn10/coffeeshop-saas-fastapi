@@ -15,7 +15,7 @@ class InventoryItemPOSTRequestBody(BaseModel):
     available_quantity: int
 
 
-class InventoryItemGETResponse(BaseModel):
+class InventoryItemResponse(BaseModel):
     """
     pydantic schema for InventoryItem in Response of any HTTP request
     """

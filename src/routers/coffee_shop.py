@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.put("/{coffee_shop_id}", response_model=schemas.CoffeeShopBase)
+@router.put("/{coffee_shop_id}", response_model=schemas.CoffeeShopResponse)
 def update_coffee_shop_endpoint(
     coffee_shop_id: int,
     request: schemas.CoffeeShopBase,
@@ -39,7 +39,7 @@ def update_coffee_shop_endpoint(
         )
 
 
-@router.post("/{coffee_shop_id}/branches", response_model=schemas.BranchResponseBody)
+@router.post("/{coffee_shop_id}/branches", response_model=schemas.BranchResponse)
 def create_branch_endpoint(
     coffee_shop_id: int,
     request: schemas.BranchBase,
@@ -69,7 +69,8 @@ def create_branch_endpoint(
 
 
 @router.put(
-    "/{coffee_shop_id}/branches/{branch_id}", response_model=schemas.BranchResponseBody
+    "/{coffee_shop_id}/branches/{branch_id}",
+    response_model=schemas.BranchResponse,
 )
 def update_branch_endpoint(
     coffee_shop_id: int,
@@ -116,9 +117,7 @@ def delete_branch_endpoint(
             target_coffee_shop_id=coffee_shop_id,
         )
         response.status_code = status.HTTP_204_NO_CONTENT
-        branch.delete_branch_by_id(
-            db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
-        )
+        branch.delete_branch(db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:
@@ -127,9 +126,7 @@ def delete_branch_endpoint(
         )
 
 
-@router.get(
-    "/{coffee_shop_id}/branches", response_model=list[schemas.BranchResponseBody]
-)
+@router.get("/{coffee_shop_id}/branches", response_model=list[schemas.BranchResponse])
 def get_all_branches_endpoint(
     coffee_shop_id: int,
     db: Session = Depends(get_db),
@@ -143,9 +140,7 @@ def get_all_branches_endpoint(
             user_coffee_shop_id=current_user.coffee_shop_id,
             target_coffee_shop_id=coffee_shop_id,
         )
-        return coffee_shop.get_all_branches_in_the_shop(
-            coffee_shop_id=coffee_shop_id, db=db
-        )
+        return branch.find_all_branches(coffee_shop_id=coffee_shop_id, db=db)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:

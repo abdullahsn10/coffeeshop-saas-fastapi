@@ -2,58 +2,34 @@ from sqlalchemy.orm import Session
 from src import schemas, models
 from src.utils.hashing import Hash
 from src.exceptions.exception import *
-from src.helpers import coffee_shop
+from src.helpers import coffee_shop, branch
 from typing import Union
 from fastapi import status
 
 
-def is_user_exists_by_email(
-    email: str, db: Session, excluded_user_id: int = None
+def is_user_exist(
+    db: Session, email: str = None, phone_no: str = None, excluded_user_id: int = None
 ) -> bool:
     """
-    This helper function used to check if a user exists by email.
+    This helper function used to check if a user exists by email or phone
     *Args:
         email (str): The email to check.
+        phone_no (str) : The phone number of the user to check
         db (Session): A database session.
         excluded_user_id (int): The user id to exclude from the check.
     *Returns:
         bool: True if the user exists, False otherwise.
     """
-    if excluded_user_id is not None:
-        return (
-            db.query(models.User)
-            .filter(models.User.email == email, models.User.id != excluded_user_id)
-            .first()
-            is not None
-        )
-    return db.query(models.User).filter(models.User.email == email).first() is not None
+    query = db.query(models.User)
 
+    if email:
+        query = query.filter(models.User.email == email)
+    if phone_no:
+        query = query.filter(models.User.phone_no == phone_no)
+    if excluded_user_id:
+        query = query.filter(models.User.id != excluded_user_id)
 
-def is_user_exists_by_phone(
-    phone_no: str, db: Session, excluded_user_id: int = None
-) -> bool:
-    """
-    This helper function used to check if a user exists by phone number.
-    *Args:
-        phone_no (str): The email to check.
-        db (Session): A database session.
-        excluded_user_id (int): The user id to exclude from the check.
-    *Returns:
-        bool: True if the user exists, False otherwise.
-    """
-    if excluded_user_id is not None:
-        return (
-            db.query(models.User)
-            .filter(
-                models.User.phone_no == phone_no, models.User.id != excluded_user_id
-            )
-            .first()
-            is not None
-        )
-    return (
-        db.query(models.User).filter(models.User.phone_no == phone_no).first()
-        is not None
-    )
+    return query.first() is not None
 
 
 def create_user(
@@ -86,41 +62,54 @@ def create_user(
     return created_user_instance
 
 
-def find_user(user_id: int, db: Session, coffee_shop_id: int = None) -> models.User:
+def find_user(
+    db: Session,
+    user_id: int = None,
+    phone_no: str = None,
+    email: str = None,
+    coffee_shop_id: int = None,
+    exclude_deleted: bool = True,
+) -> models.User:
     """
     This helper function used to get a user by id, coffee_shop_id, ..etc
     *Args:
         user_id (int): The user id.
+        phone (str): The phone number of the user.
+        email (str): The email of the user.
         db (Session): A database session.
         coffee_shop_id (int): optional argument, if it's provided then this means to put it in the query also
+        exclude_deleted (bool): optional argument, default True, if it's True then the query will exclude the deleted users
     *Returns:
         the User instance if exists, None otherwise.
     """
-    if not coffee_shop_id:
-        found_user = (
-            db.query(models.User)
-            .filter(models.User.id == user_id, models.User.deleted == False)
-            .first()
-        )
+    query = db.query(models.User)
+
+    if user_id:
+        query = query.filter(models.User.id == user_id)
+    elif phone_no:
+        query = query.filter(models.User.phone_no == phone_no)
+    elif email:
+        query = query.filter(models.User.email == email)
     else:
-        found_user = (
-            db.query(models.User)
-            .filter(
-                models.User.id == user_id,
-                models.User.branch_id == models.Branch.id,
-                models.Branch.coffee_shop_id == coffee_shop_id,
-            )
-            .first()
+        raise Exception("You must provide either user_id, phone_no, or email")
+
+    if coffee_shop_id:
+        query = query.join(models.Branch).filter(
+            models.Branch.coffee_shop_id == coffee_shop_id
         )
+
+    if exclude_deleted:
+        query = query.filter(models.User.deleted == False)
+    found_user = query.first()
     if not found_user:
         raise ShopsAppException(
-            message=f"This user with id = {user_id} does not exist in the coffee shop",
+            message=f"This user does not exist",
             status_code=status.HTTP_404_NOT_FOUND,
         )
     return found_user
 
 
-def find_all_users(coffee_shop_id: int, db: Session) -> list[models.User]:
+def find_all_users(db: Session, coffee_shop_id: int = None) -> list[models.User]:
     """
     This helper function used to get all users in a specific coffee shop.
     *Args:
@@ -129,32 +118,12 @@ def find_all_users(coffee_shop_id: int, db: Session) -> list[models.User]:
     *Returns:
         list[User]: The list of all users.
     """
-    return (
-        db.query(models.User)
-        .filter(
-            models.User.branch_id == models.Branch.id,
-            models.Branch.coffee_shop_id == coffee_shop_id,
-            models.User.deleted == False,
+    query = db.query(models.User).filter(models.User.deleted == False)
+    if coffee_shop_id:
+        query = query.join(models.Branch).filter(
+            models.Branch.coffee_shop_id == coffee_shop_id
         )
-        .all()
-    )
-
-
-def get_user_by_email(email: str, db: Session) -> models.User:
-    """
-    This helper function used to get a user by email.
-    *Args:
-        email (str): The email to check.
-        db (Session): A database session.
-
-    *Returns:
-        the User instance if exists, None otherwise.
-    """
-    return (
-        db.query(models.User)
-        .filter(models.User.email == email, models.User.deleted == False)
-        .first()
-    )
+    return query.all()
 
 
 def update_user(
@@ -211,50 +180,36 @@ def validate_user_on_create_update(
     """
 
     # verify that the branch id belongs to the admin coffee shop
-    if not coffee_shop.is_shop_has_this_branch(
-        coffee_shop_id=admin_coffee_shop_id, branch_id=branch_id, db=db
-    ):
-        raise ShopsAppException(
-            message=f"Branch with id={branch_id} does not exist in your coffee shop",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+    found_branch = branch.find_branch(
+        db=db,
+        branch_id=branch_id,
+        coffee_shop_id=admin_coffee_shop_id,
+    )
 
-    if updated_user_id is not None:
-        # verify email and phone uniqueness and exclude the user to be updated
-        # from the check (Update case)
-        if is_user_exists_by_email(
-            email=user_email, db=db, excluded_user_id=updated_user_id
-        ) or is_user_exists_by_phone(
-            phone_no=user_phone_no, db=db, excluded_user_id=updated_user_id
-        ):
-            raise ShopsAppException(
-                message="User with this email or phone number already exists",
-                status_code=status.HTTP_409_CONFLICT,  # conflict error
-            )
-    else:
-        # verify email and phone uniqueness (Create case)
-        if is_user_exists_by_email(email=user_email, db=db) or is_user_exists_by_phone(
-            phone_no=user_phone_no, db=db
-        ):
-            raise ShopsAppException(
-                message="User with this email or phone number already exists",
-                status_code=status.HTTP_409_CONFLICT,  # conflict error
-            )
+    if is_user_exist(
+        email=user_email,
+        db=db,
+        excluded_user_id=updated_user_id,
+    ) or is_user_exist(phone_no=user_phone_no, db=db, excluded_user_id=updated_user_id):
+        raise ShopsAppException(
+            message="User with this email or phone number already exists",
+            status_code=status.HTTP_409_CONFLICT,  # conflict error
+        )
 
 
 def validate_and_create_user(
     request: schemas.UserPOSTRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
-) -> schemas.UserCredentialsInResponse:
+) -> schemas.UserResponse:
     """
-    This helper function used to validate and createa new user.
+    This helper function used to validate and create a new user.
     *Args:
         request (UserPOSTRequestBody): The user details to create
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin who created the user.
     *Returns:
-        UserCredentialsInResponse: The created user credentials.
+        UserPOSTResponse: The created user details.
     """
 
     validate_user_on_create_update(
@@ -279,8 +234,14 @@ def validate_and_create_user(
         db=db,
     )
 
-    return schemas.UserCredentialsInResponse(
-        email=created_user.email, phone_no=created_user.phone_no
+    return schemas.UserResponse(
+        id=created_user.id,
+        first_name=created_user.first_name,
+        last_name=created_user.last_name,
+        email=created_user.email,
+        phone_no=created_user.phone_no,
+        role=created_user.role,
+        branch_id=created_user.branch_id,
     )
 
 
@@ -289,7 +250,7 @@ def full_update_user(
     db: Session,
     admin_coffee_shop_id: int,
     user_id: int,
-) -> schemas.UserCredentialsInResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to validate and update user.
     *Args:
@@ -298,7 +259,7 @@ def full_update_user(
         admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
         user_id (int): the id of the user needed to be updated
     *Returns:
-        UserCredentialsInResponse: The created user credentials.
+        UserPUTAndPATCHResponse: The updated user details.
     """
 
     user_instance = find_user(
@@ -316,8 +277,14 @@ def full_update_user(
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserCredentialsInResponse(
-        email=updated_user.email, phone_no=updated_user.phone_no
+    return schemas.UserResponse(
+        id=updated_user.id,
+        first_name=updated_user.first_name,
+        last_name=updated_user.last_name,
+        email=updated_user.email,
+        phone_no=updated_user.phone_no,
+        role=updated_user.role,
+        branch_id=updated_user.branch_id,
     )
 
 
@@ -327,7 +294,7 @@ def partial_update_user(
     admin_coffee_shop_id: int,
     creation: bool = True,
     user_id: int = None,
-) -> schemas.UserCredentialsInResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to validate and partially update a new user.
     *Args:
@@ -335,7 +302,7 @@ def partial_update_user(
         db (Session): A database session.
         admin_coffee_shop_id (int): The coffee shop id of the admin who updated the user.
     *Returns:
-        UserCredentialsInResponse: The updated user credentials.
+        UserPUTAndPATCHResponse: The updated user credentials.
     """
     user_instance = find_user(
         user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
@@ -343,40 +310,41 @@ def partial_update_user(
 
     if request.branch_id:
         # verify that the branch id belongs to the admin coffee shop
-        if not coffee_shop.is_shop_has_this_branch(
-            coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
-        ):
-            raise ShopsAppException(
-                message="Branch does not belong to your coffee shop",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
+        found_branch = branch.find_branch(
+            db=db,
+            branch_id=request.branch_id,
+            coffee_shop_id=admin_coffee_shop_id,
+        )
+
     # verify email and phone uniqueness and exclude the user to be updated
     # from the check
     if request.phone_no:
-        if is_user_exists_by_phone(
-            phone_no=request.phone_no, db=db, excluded_user_id=user_id
-        ):
+        if is_user_exist(phone_no=request.phone_no, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
-                message="User with this phone number already exists",
+                message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
             )
     if request.email:
-        if is_user_exists_by_email(
-            email=request.email, db=db, excluded_user_id=user_id
-        ):
+        if is_user_exist(email=request.email, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
-                message="User with this phone number already exists",
+                message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
             )
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserCredentialsInResponse(
-        email=updated_user.email, phone_no=updated_user.phone_no
+    return schemas.UserResponse(
+        id=updated_user.id,
+        first_name=updated_user.first_name,
+        last_name=updated_user.last_name,
+        email=updated_user.email,
+        phone_no=updated_user.phone_no,
+        role=updated_user.role,
+        branch_id=updated_user.branch_id,
     )
 
 
-def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> None:
+def delete_user(user_id: int, db: Session, admin_coffee_shop_id: int) -> None:
     """
     This helper function used to delete a user by id.
     *Args:
@@ -392,29 +360,40 @@ def delete_user_by_id(user_id: int, db: Session, admin_coffee_shop_id: int) -> N
     db.refresh(user_instance)
 
 
-def restore_deleted_user(
+def validate_user_on_restore(
     db: Session,
-    request: schemas.UserInRestorePATCHRequestBody,
-    admin_coffee_shop_id: int,
-):
+    branch_id: int,
+    coffee_shop_id: int,
+    phone_no: str = None,
+    email: str = None,
+) -> models.User:
     """
-    This helper function used to restore a deleted user to a branch by his/her phone
-    or email.
+    This helper function used to validate the user on restore, check if this
+    user already exists or not, check the branch to restore, ...etc
     *Args:
-        db (Session): A database session.
-        request (schemas.UserInRestorePATCHRequestBody): The user details to restore
-        admin_coffee_shop_id (int): the coffee shop id of the admin need to restore the user
+        phone_no (str): The phone number of the user to restore
+        email (str): The email of the user to restore
+        branch_id (int): The branch id to restore the user to
+        coffee_shop_id (int): The coffee shop id of the admin who restore the user
+    *Returns:
+        raise Exceptions in case of violation, return the restored_user otherwise
     """
 
-    # check if the user belongs to the user coffee shop
-    if request.phone_no:
-        restored_user = coffee_shop.get_user_in_the_shop(
-            user_phone_no=request.phone_no, db=db, coffee_shop_id=admin_coffee_shop_id
+    # check if the user belongs to the admin coffee shop
+    if phone_no:
+        restored_user = find_user(
+            phone_no=phone_no,
+            db=db,
+            coffee_shop_id=coffee_shop_id,
+            exclude_deleted=False,
         )
 
-    elif request.email:
-        restored_user = coffee_shop.get_user_in_the_shop(
-            user_email=request.email, db=db, coffee_shop_id=admin_coffee_shop_id
+    elif email:
+        restored_user = find_user(
+            email=email,
+            db=db,
+            coffee_shop_id=coffee_shop_id,
+            exclude_deleted=False,
         )
     else:
         raise ShopsAppException(
@@ -422,20 +401,10 @@ def restore_deleted_user(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    if not restored_user:
-        raise ShopsAppException(
-            message="This user does not exist in your shop",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
-    # check if the provided branch belongs to the admin's coffee shop
-    if not coffee_shop.is_shop_has_this_branch(
-        coffee_shop_id=admin_coffee_shop_id, branch_id=request.branch_id, db=db
-    ):
-        raise ShopsAppException(
-            message="This branch does not exist in your shop",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+    # check if the provided branch belongs to the admin coffee shop
+    found_branch = branch.find_branch(
+        db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
+    )
 
     # check if the user deleted
     if not restored_user.deleted:
@@ -443,9 +412,41 @@ def restore_deleted_user(
             message="User already exists in a branch",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+    return restored_user
 
+
+def restore_deleted_user(
+    db: Session,
+    request: schemas.UserInRestorePATCHRequestBody,
+    admin_coffee_shop_id: int,
+) -> schemas.UserResponse:
+    """
+    This helper function used to restore a deleted user to a branch by his/her phone
+    or email.
+    *Args:
+        db (Session): A database session.
+        request (schemas.UserInRestorePATCHRequestBody): The user details to restore
+        admin_coffee_shop_id (int): the coffee shop id of the admin need to restore the user
+    *Returns:
+        UserPUTAndPATCHResponse: The restored user details.
+    """
+    restored_user = validate_user_on_restore(
+        phone_no=request.phone_no,
+        email=request.email,
+        db=db,
+        branch_id=request.branch_id,
+        coffee_shop_id=admin_coffee_shop_id,
+    )
     restored_user.deleted = False
     restored_user.branch_id = request.branch_id
     db.commit()
     db.refresh(restored_user)
-    return restored_user
+    return schemas.UserResponse(
+        id=restored_user.id,
+        first_name=restored_user.first_name,
+        last_name=restored_user.last_name,
+        email=restored_user.email,
+        phone_no=restored_user.phone_no,
+        role=restored_user.role,
+        branch_id=restored_user.branch_id,
+    )

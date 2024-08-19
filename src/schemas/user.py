@@ -82,7 +82,7 @@ class UserPATCHRequestBody(BaseModel):
         orm_mode = True
 
 
-class UserGETResponse(BaseModel):
+class UserResponse(BaseModel):
     """
     Pydantic schema for User GET response
     """
@@ -100,6 +100,10 @@ class UserGETResponse(BaseModel):
 
 
 class UserInRestorePATCHRequestBody(BaseModel):
+    """
+    Pydantic schema for User PATCH request body to restore a deleted user
+    """
+
     email: Optional[str] = None
     phone_no: Optional[str] = None
     branch_id: int

@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=schemas.OrderPOSTResponseBody)
+@router.post("", response_model=schemas.OrderPOSTResponse)
 def place_an_order_endpoint(
     request: schemas.OrderPOSTRequestBody,
     response: Response,

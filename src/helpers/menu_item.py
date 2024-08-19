@@ -18,11 +18,7 @@ def create_menu_item(
         the created menu item
     """
     # check if the shop exists (Additional Logic, only to ensure everything is okay)
-    if not coffee_shop.find_coffee_shop_by_id(db=db, coffee_shop_id=coffee_shop_id):
-        raise ShopsAppException(
-            message=f"Coffe Shop with id = {coffee_shop_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
+    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     created_menu_item = models.MenuItem(
         name=request.name,
@@ -37,34 +33,47 @@ def create_menu_item(
 
 
 def find_menu_item(
-    db: Session, menu_item_id: int, coffee_shop_id: Optional[int] = None
+    db: Session,
+    menu_item_id: int,
+    coffee_shop_id: Optional[int] = None,
 ) -> models.MenuItem:
     """
     This helper function will be used to find a specific menu item by id.
     *Args:
         db (Session): the database session
         menu_item_id (int): the id of the menu item needed to be found
+        coffee_shop_id (Optional[int]): the id of the coffee shop that the item must belongs to
     *Returns:
-    the found menu item or None if it does not exist
+        the found menu item or raise Exception if not found
     """
-    if coffee_shop_id:
-        return (
-            db.query(models.MenuItem)
-            .filter(
-                models.MenuItem.id == menu_item_id,
-                models.MenuItem.coffee_shop_id == coffee_shop_id,
-                models.MenuItem.deleted == False,
-            )
-            .first()
-        )
-    return (
-        db.query(models.MenuItem)
-        .filter(
-            models.MenuItem.id == menu_item_id,
-            models.MenuItem.deleted == False,
-        )
-        .first()
+    query = db.query(models.MenuItem).filter(
+        models.MenuItem.id == menu_item_id, models.MenuItem.deleted == False
     )
+    if coffee_shop_id:
+        query = query.filter(models.MenuItem.coffee_shop_id == coffee_shop_id)
+    found_menu_item = query.first()
+    if not found_menu_item:
+        raise ShopsAppException(
+            message=f"This item with id = {menu_item_id} does not exist",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+    return found_menu_item
+
+
+def find_all_menu_items(coffee_shop_id: int, db: Session) -> list[models.MenuItem]:
+    """
+    This helper function will be used to find all menu items in a specific coffee shop.
+    *Args:
+        coffee_shop_id (int): the id of the coffee shop
+        db (Session): the database session
+    *Returns:
+        the found inventory items
+    """
+    query = db.query(models.MenuItem).filter(
+        models.MenuItem.deleted == False,
+        models.MenuItem.coffee_shop_id == coffee_shop_id,
+    )
+    return query.all()
 
 
 def update_menu_item(
@@ -87,12 +96,6 @@ def update_menu_item(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
 
-    if not found_menu_item:
-        raise ShopsAppException(
-            message=f"This item with id = {menu_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
     # Update all fields of the menu item object based on the request
     update_data = request.model_dump(
         exclude_unset=True
@@ -104,9 +107,7 @@ def update_menu_item(
     return found_menu_item
 
 
-def delete_menu_item_by_id(
-    db: Session, menu_item_id: int, admin_coffee_shop_id: int
-) -> None:
+def delete_menu_item(db: Session, menu_item_id: int, admin_coffee_shop_id: int) -> None:
     """
     This helper function will be used to delete a menu item by id.
     *Args:
@@ -121,11 +122,6 @@ def delete_menu_item_by_id(
     found_menu_item: models.MenuItem = find_menu_item(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
-    if not found_menu_item:
-        raise ShopsAppException(
-            message=f"This item with id = {menu_item_id} does not exist",
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
 
     found_menu_item.deleted = True
     db.commit()

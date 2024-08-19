@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.MenuItemGETResponse)
+@router.post("/", response_model=schemas.MenuItemResponse)
 def create_menu_item_endpoint(
     request: schemas.MenuItemPOSTRequestBody,
     response: Response,
@@ -37,7 +37,7 @@ def create_menu_item_endpoint(
         )
 
 
-@router.get("/", response_model=list[schemas.MenuItemGETResponse])
+@router.get("/", response_model=list[schemas.MenuItemResponse])
 def get_all_menu_items_endpoint(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(
@@ -50,7 +50,7 @@ def get_all_menu_items_endpoint(
     GET endpoint to get all menu items in the shop
     """
     try:
-        return coffee_shop.get_all_menu_items_in_the_shop(
+        return menu_item.find_all_menu_items(
             db=db, coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:
@@ -61,7 +61,7 @@ def get_all_menu_items_endpoint(
         )
 
 
-@router.put("/{menu_item_id}", response_model=schemas.MenuItemGETResponse)
+@router.put("/{menu_item_id}", response_model=schemas.MenuItemResponse)
 def update_menu_item_endpoint(
     request: schemas.MenuItemPUTRequestBody,
     menu_item_id: int,
@@ -98,7 +98,7 @@ def delete_menu_item_endpoint(
     """
     try:
         response.status_code = status.HTTP_204_NO_CONTENT
-        menu_item.delete_menu_item_by_id(
+        menu_item.delete_menu_item(
             menu_item_id=menu_item_id,
             db=db,
             admin_coffee_shop_id=current_user.coffee_shop_id,

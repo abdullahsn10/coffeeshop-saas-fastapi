@@ -28,9 +28,9 @@ def signup(
     admin_user_instance: schemas.UserBase = request.admin_details
 
     # check email or phone duplicates
-    if user.is_user_exists_by_email(
-        email=admin_user_instance.email, db=db
-    ) or user.is_user_exists_by_phone(phone_no=admin_user_instance.phone_no, db=db):
+    if user.is_user_exist(email=admin_user_instance.email, db=db) or user.is_user_exist(
+        phone_no=admin_user_instance.phone_no, db=db
+    ):
         raise ShopsAppException(
             message="User with this email or phone number already exists.",
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -68,12 +68,7 @@ def verify_user_credentials_and_gen_token(
         The JWT token for the user.
     """
     # get the user using the email
-    current_user = user.get_user_by_email(db=db, email=request.username)
-
-    if not current_user:
-        raise ShopsAppException(
-            message="Invalid Credentials", status_code=status.HTTP_400_BAD_REQUEST
-        )
+    current_user = user.find_user(email=request.username, db=db)
 
     # verify password
     if not Hash.verify(
@@ -86,7 +81,9 @@ def verify_user_credentials_and_gen_token(
 
     # create jwt and return it
     # get the coffee shop id
-    coffee_shop_id = branch.get_coffee_shop_id(db=db, branch_id=current_user.branch_id)
+    coffee_shop_id = branch.find_branch(
+        branch_id=current_user.branch_id, db=db
+    ).coffee_shop_id
     access_token = generate_token_for_user(
         user=current_user, coffee_shop_id=coffee_shop_id
     )

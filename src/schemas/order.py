@@ -17,7 +17,7 @@ class OrderPOSTRequestBody(BaseModel):
     order_items: list[MenuItemInPOSTOrderRequestBody]
 
 
-class OrderPOSTResponseBody(BaseModel):
+class OrderPOSTResponse(BaseModel):
     """
     pydantic schema for the order in POST response body
     """
