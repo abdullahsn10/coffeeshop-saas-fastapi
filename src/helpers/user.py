@@ -69,7 +69,6 @@ def find_user(
     email: str = None,
     coffee_shop_id: int = None,
     exclude_deleted: bool = True,
-    raise_exc: bool = True,
 ) -> models.User:
     """
     This helper function used to get a user by id, coffee_shop_id, ..etc
@@ -80,7 +79,6 @@ def find_user(
         db (Session): A database session.
         coffee_shop_id (int): optional argument, if it's provided then this means to put it in the query also
         exclude_deleted (bool): optional argument, default True, if it's True then the query will exclude the deleted users
-        raise_exc (bool): optional argument, default True, if it's True then the function will raise an exception if the user not found
     *Returns:
         the User instance if exists, None otherwise.
     """
@@ -103,7 +101,7 @@ def find_user(
     if exclude_deleted:
         query = query.filter(models.User.deleted == False)
     found_user = query.first()
-    if raise_exc and not found_user:
+    if not found_user:
         raise ShopsAppException(
             message=f"This user does not exist",
             status_code=status.HTTP_404_NOT_FOUND,
@@ -186,13 +184,7 @@ def validate_user_on_create_update(
         db=db,
         branch_id=branch_id,
         coffee_shop_id=admin_coffee_shop_id,
-        raise_exc=False,
     )
-    if not found_branch:
-        raise ShopsAppException(
-            message=f"Branch with id={branch_id} does not exist",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
 
     if is_user_exist(
         email=user_email,
@@ -209,7 +201,7 @@ def validate_and_create_user(
     request: schemas.UserPOSTRequestBody,
     db: Session,
     admin_coffee_shop_id: int,
-) -> schemas.UserPOSTResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to validate and create a new user.
     *Args:
@@ -242,7 +234,7 @@ def validate_and_create_user(
         db=db,
     )
 
-    return schemas.UserPOSTResponse(
+    return schemas.UserResponse(
         id=created_user.id,
         first_name=created_user.first_name,
         last_name=created_user.last_name,
@@ -258,7 +250,7 @@ def full_update_user(
     db: Session,
     admin_coffee_shop_id: int,
     user_id: int,
-) -> schemas.UserPUTAndPATCHResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to validate and update user.
     *Args:
@@ -285,7 +277,7 @@ def full_update_user(
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserPUTAndPATCHResponse(
+    return schemas.UserResponse(
         id=updated_user.id,
         first_name=updated_user.first_name,
         last_name=updated_user.last_name,
@@ -302,7 +294,7 @@ def partial_update_user(
     admin_coffee_shop_id: int,
     creation: bool = True,
     user_id: int = None,
-) -> schemas.UserPUTAndPATCHResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to validate and partially update a new user.
     *Args:
@@ -322,13 +314,7 @@ def partial_update_user(
             db=db,
             branch_id=request.branch_id,
             coffee_shop_id=admin_coffee_shop_id,
-            raise_exc=False,
         )
-        if not found_branch:
-            raise ShopsAppException(
-                message=f"Branch with id={request.branch_id} does not exist",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
 
     # verify email and phone uniqueness and exclude the user to be updated
     # from the check
@@ -347,7 +333,7 @@ def partial_update_user(
     # update the user
     updated_user = update_user(request=request, db=db, user_instance=user_instance)
 
-    return schemas.UserPUTAndPATCHResponse(
+    return schemas.UserResponse(
         id=updated_user.id,
         first_name=updated_user.first_name,
         last_name=updated_user.last_name,
@@ -420,12 +406,6 @@ def validate_user_on_restore(
         db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
     )
 
-    if not found_branch:
-        raise ShopsAppException(
-            message=f"Branch with id={branch_id} does not exist",
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
     # check if the user deleted
     if not restored_user.deleted:
         raise ShopsAppException(
@@ -439,7 +419,7 @@ def restore_deleted_user(
     db: Session,
     request: schemas.UserInRestorePATCHRequestBody,
     admin_coffee_shop_id: int,
-) -> schemas.UserPUTAndPATCHResponse:
+) -> schemas.UserResponse:
     """
     This helper function used to restore a deleted user to a branch by his/her phone
     or email.
@@ -461,7 +441,7 @@ def restore_deleted_user(
     restored_user.branch_id = request.branch_id
     db.commit()
     db.refresh(restored_user)
-    return schemas.UserPUTAndPATCHResponse(
+    return schemas.UserResponse(
         id=restored_user.id,
         first_name=restored_user.first_name,
         last_name=restored_user.last_name,

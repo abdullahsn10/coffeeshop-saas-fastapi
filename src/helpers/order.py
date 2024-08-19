@@ -25,13 +25,9 @@ def validate_order_items(
         raise ShopsAppException in case of violation
     """
     for item in items_list:
-        if not menu_item.find_menu_item(
-            db=db, menu_item_id=item.id, coffee_shop_id=coffee_shop_id, raise_exc=False
-        ):
-            raise ShopsAppException(
-                message="Menu item does not exist",
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
+        menu_item.find_menu_item(
+            db=db, menu_item_id=item.id, coffee_shop_id=coffee_shop_id
+        )
 
 
 def create_order(

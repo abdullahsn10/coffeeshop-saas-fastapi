@@ -11,7 +11,7 @@ class MenuItemPOSTRequestBody(BaseModel):
     price: float
 
 
-class MenuItemGETResponse(BaseModel):
+class MenuItemResponse(BaseModel):
     """
     pydantic schema for MenuItem in response of any HTTP request
     """
@@ -50,21 +50,3 @@ class MenuItemInGETOrderResponseBody(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
-
-
-class MenuItemPOSTResponse(MenuItemGETResponse):
-    """
-    pydantic schema for MenuItem in POST response body
-    """
-
-    class Config:
-        orm_mode = True
-
-
-class MenuItemPUTResponse(MenuItemGETResponse):
-    """
-    pydantic schema for MenuItem in PUT response body
-    """
-
-    class Config:
-        orm_mode = True

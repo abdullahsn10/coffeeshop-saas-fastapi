@@ -45,7 +45,7 @@ def find_coffee_shop(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
 
 def update_coffee_shop(
     request: schemas.CoffeeShopBase, db: Session, coffee_shop_id: int
-) -> schemas.CoffeeShopPUTResponse:
+) -> schemas.CoffeeShopResponse:
     """
     This helper function used to fully update a coffee shop
     *Args:
@@ -67,7 +67,7 @@ def update_coffee_shop(
         setattr(found_coffee_shop, field, value)
     db.commit()
     db.refresh(found_coffee_shop)
-    return schemas.CoffeeShopPUTResponse(
+    return schemas.CoffeeShopResponse(
         name=found_coffee_shop.name,
         location=found_coffee_shop.location,
         contact_info=found_coffee_shop.contact_info,

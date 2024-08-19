@@ -36,7 +36,6 @@ def find_menu_item(
     db: Session,
     menu_item_id: int,
     coffee_shop_id: Optional[int] = None,
-    raise_exc: bool = True,
 ) -> models.MenuItem:
     """
     This helper function will be used to find a specific menu item by id.
@@ -44,9 +43,8 @@ def find_menu_item(
         db (Session): the database session
         menu_item_id (int): the id of the menu item needed to be found
         coffee_shop_id (Optional[int]): the id of the coffee shop that the item must belongs to
-        raise_exc (bool): whether to raise an exception if the item is not found
     *Returns:
-    the found menu item or None if it does not exist
+        the found menu item or raise Exception if not found
     """
     query = db.query(models.MenuItem).filter(
         models.MenuItem.id == menu_item_id, models.MenuItem.deleted == False
@@ -54,7 +52,7 @@ def find_menu_item(
     if coffee_shop_id:
         query = query.filter(models.MenuItem.coffee_shop_id == coffee_shop_id)
     found_menu_item = query.first()
-    if raise_exc and not found_menu_item:
+    if not found_menu_item:
         raise ShopsAppException(
             message=f"This item with id = {menu_item_id} does not exist",
             status_code=status.HTTP_404_NOT_FOUND,

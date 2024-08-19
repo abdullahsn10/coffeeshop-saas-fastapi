@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=schemas.MenuItemPOSTResponse)
+@router.post("/", response_model=schemas.MenuItemResponse)
 def create_menu_item_endpoint(
     request: schemas.MenuItemPOSTRequestBody,
     response: Response,
@@ -37,7 +37,7 @@ def create_menu_item_endpoint(
         )
 
 
-@router.get("/", response_model=list[schemas.MenuItemGETResponse])
+@router.get("/", response_model=list[schemas.MenuItemResponse])
 def get_all_menu_items_endpoint(
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(
@@ -61,7 +61,7 @@ def get_all_menu_items_endpoint(
         )
 
 
-@router.put("/{menu_item_id}", response_model=schemas.MenuItemPUTResponse)
+@router.put("/{menu_item_id}", response_model=schemas.MenuItemResponse)
 def update_menu_item_endpoint(
     request: schemas.MenuItemPUTRequestBody,
     menu_item_id: int,

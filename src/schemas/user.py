@@ -82,7 +82,7 @@ class UserPATCHRequestBody(BaseModel):
         orm_mode = True
 
 
-class UserGETResponse(BaseModel):
+class UserResponse(BaseModel):
     """
     Pydantic schema for User GET response
     """
@@ -94,24 +94,6 @@ class UserGETResponse(BaseModel):
     phone_no: str
     role: UserRole
     branch_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class UserPOSTResponse(UserGETResponse):
-    """
-    Pydantic schema for User POST and PATCH response
-    """
-
-    class Config:
-        orm_mode = True
-
-
-class UserPUTAndPATCHResponse(UserGETResponse):
-    """
-    Pydantic schema for User PATCH response
-    """
 
     class Config:
         orm_mode = True

@@ -45,7 +45,7 @@ def is_branch_have_users(branch_id: int, db: Session) -> bool:
 
 
 def find_branch(
-    branch_id: int, db: Session, coffee_shop_id: int = None, raise_exc: bool = True
+    branch_id: int, db: Session, coffee_shop_id: int = None
 ) -> models.Branch:
     """
     This helper will be used to find a branch by id and coffee shop id
@@ -53,9 +53,8 @@ def find_branch(
         branch_id (int): branch id to be found
         db (Session): database session
         coffee_shop_id (int): coffee shop id that the branch belongs to
-        raise_exc (bool): whether to raise an exception if the branch is not found
     *Returns:
-        the found branch
+        the found branch or raise an exception if not found
     """
     query = db.query(models.Branch).filter(
         models.Branch.id == branch_id, models.Branch.deleted == False
@@ -65,7 +64,7 @@ def find_branch(
         query = query.filter(models.Branch.coffee_shop_id == coffee_shop_id)
 
     found_branch = query.first()
-    if raise_exc and not found_branch:
+    if not found_branch:
         raise ShopsAppException(
             message=f"Branch with id={branch_id} does not exist",
             status_code=status.HTTP_404_NOT_FOUND,
