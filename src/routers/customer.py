@@ -48,7 +48,7 @@ def get_all_customers_details_endpoint(
     current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
 ):
     """
-    GET endpoint to get a customer by id
+    GET endpoint to get all customers
     """
     try:
         return customer.find_all_customers(
