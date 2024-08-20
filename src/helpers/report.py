@@ -33,7 +33,7 @@ def list_customers_orders(
         .outerjoin(models.OrderItem, models.Order.id == models.OrderItem.order_id)
         .outerjoin(models.MenuItem, models.OrderItem.item_id == models.MenuItem.id)
         .filter(models.Customer.coffee_shop_id == coffee_shop_id)
-        .group_by(models.Customer.id, models.Customer.name, models.Customer.phone_no)
+        .group_by(models.Customer.id)
     )
 
     if order_by:
