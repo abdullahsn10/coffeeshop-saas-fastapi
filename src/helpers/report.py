@@ -21,17 +21,19 @@ def list_customers_orders(
             models.Customer.id,
             func.array_agg(models.Customer.name)[1].label("name"),
             func.array_agg(models.Customer.phone_no)[1].label("phone_no"),
-            func.count(func.distinct(models.Order.id)).label("total_orders"),
-            func.sum(models.OrderItem.quantity * models.MenuItem.price).label(
-                "total_paid"
+            func.coalesce(func.count(func.distinct(models.Order.id)), 0).label(
+                "total_orders"
             ),
+            func.coalesce(
+                func.sum(models.OrderItem.quantity * models.MenuItem.price), 0
+            ).label("total_paid"),
         )
         .select_from(models.Customer)
-        .join(models.Order, models.Customer.id == models.Order.customer_id)
-        .join(models.OrderItem, models.Order.id == models.OrderItem.order_id)
-        .join(models.MenuItem, models.OrderItem.item_id == models.MenuItem.id)
+        .outerjoin(models.Order, models.Customer.id == models.Order.customer_id)
+        .outerjoin(models.OrderItem, models.Order.id == models.OrderItem.order_id)
+        .outerjoin(models.MenuItem, models.OrderItem.item_id == models.MenuItem.id)
         .filter(models.Customer.coffee_shop_id == coffee_shop_id)
-        .group_by(models.Customer.id)
+        .group_by(models.Customer.id, models.Customer.name, models.Customer.phone_no)
     )
 
     if order_by:
