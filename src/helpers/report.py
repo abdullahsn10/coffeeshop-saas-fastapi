@@ -144,3 +144,41 @@ def list_issuers_orders(
             query = query.order_by(order_by)  # default asc
 
     return query.all()
+
+
+def list_orders_income(
+    db: Session, coffee_shop_id: int, from_date: date, to_date: date
+) -> schemas.OrderIncomeReport:
+    """
+    This helper function lists total income from orders along with the number of orders
+    *Args:
+        db (Session): SQLAlchemy Session
+        coffee_shop_id (int): coffee shop id to filter orders
+        from_date (date): start date to filter orders
+        to_date (date): end date to filter orders
+    *Returns:
+        OrderIncomeReport: total income from orders along with the number of orders
+    """
+    query = (
+        db.query(
+            func.count(func.distinct(models.Order.id)).label("total_orders"),
+            func.coalesce(
+                func.sum(models.OrderItem.quantity * models.MenuItem.price), 0
+            ).label("total_income"),
+        )
+        .select_from(models.Order)
+        .join(models.Customer, models.Customer.id == models.Order.customer_id)
+        .outerjoin(models.OrderItem, models.Order.id == models.OrderItem.order_id)
+        .join(models.MenuItem, models.MenuItem.id == models.OrderItem.item_id)
+        .filter(
+            models.Customer.coffee_shop_id == coffee_shop_id,
+            models.Order.issue_date >= from_date,
+            models.Order.issue_date <= to_date,
+        )
+    )
+
+    result = query.first()
+    return schemas.OrderIncomeReport(
+        total_income=result.total_income,
+        total_orders=result.total_orders,
+    )

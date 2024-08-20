@@ -40,3 +40,15 @@ class IssuerOrderReport(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class OrderIncomeReport(BaseModel):
+    """
+    pydantic model for order income
+    """
+
+    total_orders: int
+    total_income: float
+
+    class Config:
+        orm_mode = True
