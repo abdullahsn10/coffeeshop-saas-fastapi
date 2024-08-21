@@ -153,7 +153,7 @@ def list_orders_income_endpoint(
     "/coffee-shops/{coffee_shop_id}/new-customers",
     response_model=schemas.NewCustomersReport,
 )
-def get_number_of_new_customers_endpoint(
+def list_new_customers_endpoint(
     coffee_shop_id: int,
     from_date: date,
     to_date: date,
@@ -168,7 +168,7 @@ def get_number_of_new_customers_endpoint(
             user_coffee_shop_id=current_user.coffee_shop_id,
             target_coffee_shop_id=coffee_shop_id,
         )
-        return report.get_number_of_new_customers(
+        return report.list_new_customers(
             db=db,
             coffee_shop_id=coffee_shop_id,
             from_date=from_date,

@@ -27,3 +27,7 @@ class CustomerResponse(BaseModel):
     name: str
     phone_no: str
     coffee_shop_id: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

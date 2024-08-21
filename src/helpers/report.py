@@ -184,7 +184,7 @@ def list_orders_income(
     )
 
 
-def get_number_of_new_customers(
+def list_new_customers(
     db: Session, coffee_shop_id: int, from_date: date, to_date: date
 ) -> schemas.NewCustomersReport:
     """
@@ -197,17 +197,14 @@ def get_number_of_new_customers(
     *Returns:
         NewCustomersReport : number of new customers
     """
-    query = (
-        db.query(func.count(models.Customer.id).label("number_of_new_customers"))
-        .select_from(models.Customer)
-        .filter(
-            models.Customer.coffee_shop_id == coffee_shop_id,
-            models.Customer.created >= from_date,
-            models.Customer.created <= to_date,
-        )
+    query = db.query(models.Customer).filter(
+        models.Customer.coffee_shop_id == coffee_shop_id,
+        models.Customer.created >= from_date,
+        models.Customer.created <= to_date,
     )
+    number_of_new_customers = query.count()
 
-    result = query.first()
+    new_customers = query.all()
     return schemas.NewCustomersReport(
-        number_of_new_customers=result.number_of_new_customers,
+        number_of_new_customers=number_of_new_customers, new_customers=new_customers
     )

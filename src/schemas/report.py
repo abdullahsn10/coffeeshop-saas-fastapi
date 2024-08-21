@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from src.schemas.customer import CustomerResponse
 
 
 class CustomerOrderReport(BaseModel):
@@ -60,6 +61,7 @@ class NewCustomersReport(BaseModel):
     """
 
     number_of_new_customers: int
+    new_customers: list[CustomerResponse]
 
     class Config:
         orm_mode = True
