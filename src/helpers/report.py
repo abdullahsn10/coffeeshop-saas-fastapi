@@ -169,7 +169,7 @@ def list_orders_income(
         .select_from(models.Order)
         .join(models.Customer, models.Customer.id == models.Order.customer_id)
         .outerjoin(models.OrderItem, models.Order.id == models.OrderItem.order_id)
-        .join(models.MenuItem, models.MenuItem.id == models.OrderItem.item_id)
+        .outerjoin(models.MenuItem, models.MenuItem.id == models.OrderItem.item_id)
         .filter(
             models.Customer.coffee_shop_id == coffee_shop_id,
             models.Order.issue_date >= from_date,
