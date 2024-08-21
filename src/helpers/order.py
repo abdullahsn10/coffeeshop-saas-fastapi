@@ -9,6 +9,9 @@ from src.helpers import customer, menu_item, user, coffee_shop
 from src.models.order import OrderStatus
 from src.models.user import UserRole
 from src.settings.settings import ROLE_STATUS_MAPPING
+from collections import defaultdict
+from fastapi import status
+from sqlalchemy.exc import SQLAlchemyError
 
 
 def validate_order_items(
@@ -45,6 +48,7 @@ def create_order(
     *Returns:
         the created order instance
     """
+
     created_order = models.Order(
         customer_id=customer_id,
         issuer_id=issuer_id,
@@ -55,16 +59,21 @@ def create_order(
     db.commit()
     db.refresh(created_order)
 
-    # create order details
+    # sum quantities of items with the same id
+    item_quantities = defaultdict(int)
     for item in order_items:
+        item_quantities[item.id] += item.quantity
+
+    # Create order details after aggregation
+    for item_id, total_quantity in item_quantities.items():
         db.add(
             models.OrderItem(
                 order_id=created_order.id,
-                item_id=item.id,
-                quantity=item.quantity,
+                item_id=item_id,
+                quantity=total_quantity,  # Use aggregated quantity
             )
         )
-        db.commit()
+    db.commit()  # commit after adding all items
 
     return created_order
 
@@ -91,10 +100,12 @@ def place_an_order(
 
     validate_order_items(items_list=order_items, db=db, coffee_shop_id=coffee_shop_id)
 
+    # Create customer
     created_customer_instance = customer.create_customer(
         request=customer_details, db=db, coffee_shop_id=coffee_shop_id
     )
 
+    # Create order and its items
     created_order = create_order(
         customer_id=created_customer_instance.id,
         issuer_id=issuer_id,
