@@ -184,7 +184,7 @@ def list_orders_income(
     )
 
 
-def list_new_customers(
+def get_number_of_new_customers(
     db: Session, coffee_shop_id: int, from_date: date, to_date: date
 ) -> schemas.NewCustomersReport:
     """
