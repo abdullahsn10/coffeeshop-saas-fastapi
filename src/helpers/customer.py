@@ -54,7 +54,9 @@ def create_customer(
     )
     if not customer_instance:
         customer_instance = models.Customer(
-            phone_no=request.phone_no, name=request.name, coffee_shop_id=coffee_shop_id
+            phone_no=request.phone_no,
+            name=request.name,
+            coffee_shop_id=coffee_shop_id,
         )
         db.add(customer_instance)
         db.commit()
