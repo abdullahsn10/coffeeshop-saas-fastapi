@@ -52,3 +52,14 @@ class OrderIncomeReport(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class NewCustomersReport(BaseModel):
+    """
+    pydantic model for new customers report
+    """
+
+    number_of_new_customers: int
+
+    class Config:
+        orm_mode = True

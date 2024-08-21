@@ -1,7 +1,15 @@
 from sqlalchemy.orm import relationship
-
+from datetime import datetime
 from src.settings.database import Base
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    TIMESTAMP,
+    ForeignKey,
+    UniqueConstraint,
+)
 
 
 class Customer(Base):
@@ -15,6 +23,7 @@ class Customer(Base):
     name = Column(String, nullable=False)
     phone_no = Column(String, nullable=False)
     coffee_shop_id = Column(Integer, ForeignKey("coffee_shop.id"))
+    created = Column(TIMESTAMP, nullable=False, default=datetime.now)
     # relationship with order
     orders = relationship("Order", back_populates="customer")
 
