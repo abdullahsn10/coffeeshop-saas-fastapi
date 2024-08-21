@@ -208,3 +208,45 @@ def list_new_customers(
     return schemas.NewCustomersReport(
         number_of_new_customers=number_of_new_customers, new_customers=new_customers
     )
+
+
+def list_top_selling_items(
+    db: Session, coffee_shop_id: int, from_date: date, to_date: date, sort: str = None
+) -> schemas.TopSellingItemsReport:
+    """
+    This helper function lists top selling items along with their total quantity
+    *Args:
+        db (Session): SQLAlchemy Session
+        coffee_shop_id (int): coffee shop id to filter items
+        from_date (date): start date to filter orders
+        to_date (date): end date to filter orders
+        sort (str): sort order
+    *Returns:
+        TopSellingItemsReport: top selling items along with their total quantity
+    """
+    query = (
+        db.query(
+            models.MenuItem.id,
+            func.array_agg(models.MenuItem.name)[1].label("item_name"),
+            func.coalesce(func.sum(models.OrderItem.quantity), 0).label(
+                "selling_times"
+            ),
+        )
+        .select_from(models.MenuItem)
+        .join(models.OrderItem, models.MenuItem.id == models.OrderItem.item_id)
+        .join(models.Order, models.OrderItem.order_id == models.Order.id)
+        .filter(
+            models.MenuItem.coffee_shop_id == coffee_shop_id,
+            models.Order.issue_date >= from_date,
+            models.Order.issue_date <= to_date,
+        )
+        .group_by(models.MenuItem.id)
+    )
+
+    if sort == "desc":
+        query = query.order_by(desc("selling_times"))
+    else:
+        query = query.order_by("selling_times")  # default asc
+
+    result = query.all()
+    return schemas.TopSellingItemsReport(top_selling_items=result)
