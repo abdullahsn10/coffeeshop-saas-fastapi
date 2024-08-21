@@ -180,3 +180,38 @@ def list_new_customers_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
+
+
+@router.get(
+    "/coffee-shops/{coffee_shop_id}/top-selling-items",
+    response_model=schemas.TopSellingItemsReport,
+)
+def list_top_selling_items_endpoint(
+    coffee_shop_id: int,
+    from_date: date,
+    to_date: date,
+    sort: str = Query(None, regex="^(asc|desc)$"),
+    db: Session = Depends(get_db),
+    current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
+):
+    """
+    GET endpoint to list top selling items in a given period
+    """
+    try:
+        check_if_user_can_access_shop(
+            user_coffee_shop_id=current_user.coffee_shop_id,
+            target_coffee_shop_id=coffee_shop_id,
+        )
+        return report.list_top_selling_items(
+            db=db,
+            coffee_shop_id=coffee_shop_id,
+            from_date=from_date,
+            to_date=to_date,
+            sort=sort,
+        )
+    except ShopsAppException as se:
+        raise HTTPException(status_code=se.status_code, detail=se.message)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )

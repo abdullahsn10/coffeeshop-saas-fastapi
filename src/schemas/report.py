@@ -65,3 +65,29 @@ class NewCustomersReport(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class SoldItemResponse(BaseModel):
+    """
+    pydantic model for top selling items report
+    """
+
+    id: int
+    item_name: str
+    selling_times: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
+
+class TopSellingItemsReport(BaseModel):
+    """
+    pydantic model for top selling items report
+    """
+
+    top_selling_items: list[SoldItemResponse]
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
