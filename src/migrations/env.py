@@ -9,6 +9,14 @@ from sqlalchemy import pool
 
 from alembic import context
 from src.settings.database import Base
+from src.models.customer import Customer
+from src.models.coffee_shop import CoffeeShop
+from src.models.order import Order
+from src.models.order_item import OrderItem
+from src.models.branch import Branch
+from src.models.menu_item import MenuItem
+from src.models.inventory_item import InventoryItem
+from src.models.user import User
 
 # Add the parent directory of 'src' to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
