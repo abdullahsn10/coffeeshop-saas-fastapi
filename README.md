@@ -11,9 +11,7 @@ This project is a SaaS platform for managing coffee shops, built with FastAPI. I
 - [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
 - [Database Migrations](#database-migrations)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
+
 
 ## Features
 
