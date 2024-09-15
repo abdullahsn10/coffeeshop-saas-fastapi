@@ -18,7 +18,7 @@ def create_menu_item(
         the created menu item
     """
     # check if the shop exists (Additional Logic, only to ensure everything is okay)
-    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
+    found_shop = coffee_shop._find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     created_menu_item = models.MenuItem(
         name=request.name,
@@ -32,7 +32,7 @@ def create_menu_item(
     return created_menu_item
 
 
-def find_menu_item(
+def _find_menu_item(
     db: Session,
     menu_item_id: int,
     coffee_shop_id: Optional[int] = None,
@@ -92,7 +92,7 @@ def update_menu_item(
     *Returns:
         the updated menu item
     """
-    found_menu_item: models.MenuItem = find_menu_item(
+    found_menu_item: models.MenuItem = _find_menu_item(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
 
@@ -119,7 +119,7 @@ def delete_menu_item(db: Session, menu_item_id: int, admin_coffee_shop_id: int) 
     """
 
     # check if the branch belongs to this coffee shop
-    found_menu_item: models.MenuItem = find_menu_item(
+    found_menu_item: models.MenuItem = _find_menu_item(
         db=db, menu_item_id=menu_item_id, coffee_shop_id=admin_coffee_shop_id
     )
 

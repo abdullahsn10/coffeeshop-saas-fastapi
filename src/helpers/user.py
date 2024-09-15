@@ -7,7 +7,7 @@ from typing import Union
 from fastapi import status
 
 
-def is_user_exist(
+def _is_user_exist(
     db: Session, email: str = None, phone_no: str = None, excluded_user_id: int = None
 ) -> bool:
     """
@@ -32,7 +32,7 @@ def is_user_exist(
     return query.first() is not None
 
 
-def create_user(
+def _create_user(
     request: schemas.UserBase, role: models.UserRole, branch_id: int, db: Session
 ) -> models.User:
     """
@@ -154,7 +154,7 @@ def update_user(
     return user_instance
 
 
-def validate_user_on_create_update(
+def _validate_user_on_create_update(
     admin_coffee_shop_id: int,
     branch_id: int,
     user_email: str,
@@ -180,17 +180,19 @@ def validate_user_on_create_update(
     """
 
     # verify that the branch id belongs to the admin coffee shop
-    found_branch = branch.find_branch(
+    found_branch = branch._find_branch(
         db=db,
         branch_id=branch_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
 
-    if is_user_exist(
+    if _is_user_exist(
         email=user_email,
         db=db,
         excluded_user_id=updated_user_id,
-    ) or is_user_exist(phone_no=user_phone_no, db=db, excluded_user_id=updated_user_id):
+    ) or _is_user_exist(
+        phone_no=user_phone_no, db=db, excluded_user_id=updated_user_id
+    ):
         raise ShopsAppException(
             message="User with this email or phone number already exists",
             status_code=status.HTTP_409_CONFLICT,  # conflict error
@@ -212,7 +214,7 @@ def validate_and_create_user(
         UserPOSTResponse: The created user details.
     """
 
-    validate_user_on_create_update(
+    _validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
         user_email=request.email,
@@ -227,7 +229,7 @@ def validate_and_create_user(
         phone_no=request.phone_no,
         password=request.password,
     )
-    created_user = create_user(
+    created_user = _create_user(
         request=user_details,
         role=request.role,
         branch_id=request.branch_id,
@@ -266,7 +268,7 @@ def full_update_user(
         user_id=user_id, db=db, coffee_shop_id=admin_coffee_shop_id
     )
 
-    validate_user_on_create_update(
+    _validate_user_on_create_update(
         admin_coffee_shop_id=admin_coffee_shop_id,
         branch_id=request.branch_id,
         user_email=request.email,
@@ -310,7 +312,7 @@ def partial_update_user(
 
     if request.branch_id:
         # verify that the branch id belongs to the admin coffee shop
-        found_branch = branch.find_branch(
+        found_branch = branch._find_branch(
             db=db,
             branch_id=request.branch_id,
             coffee_shop_id=admin_coffee_shop_id,
@@ -319,13 +321,13 @@ def partial_update_user(
     # verify email and phone uniqueness and exclude the user to be updated
     # from the check
     if request.phone_no:
-        if is_user_exist(phone_no=request.phone_no, db=db, excluded_user_id=user_id):
+        if _is_user_exist(phone_no=request.phone_no, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
                 message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
             )
     if request.email:
-        if is_user_exist(email=request.email, db=db, excluded_user_id=user_id):
+        if _is_user_exist(email=request.email, db=db, excluded_user_id=user_id):
             raise ShopsAppException(
                 message="User with this email or phone already exists",
                 status_code=status.HTTP_409_CONFLICT,
@@ -360,7 +362,7 @@ def delete_user(user_id: int, db: Session, admin_coffee_shop_id: int) -> None:
     db.refresh(user_instance)
 
 
-def validate_user_on_restore(
+def _validate_user_on_restore(
     db: Session,
     branch_id: int,
     coffee_shop_id: int,
@@ -402,7 +404,7 @@ def validate_user_on_restore(
         )
 
     # check if the provided branch belongs to the admin coffee shop
-    found_branch = branch.find_branch(
+    found_branch = branch._find_branch(
         db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
     )
 
@@ -415,7 +417,7 @@ def validate_user_on_restore(
     return restored_user
 
 
-def restore_deleted_user(
+def restore_user(
     db: Session,
     request: schemas.UserInRestorePATCHRequestBody,
     admin_coffee_shop_id: int,
@@ -430,7 +432,7 @@ def restore_deleted_user(
     *Returns:
         UserPUTAndPATCHResponse: The restored user details.
     """
-    restored_user = validate_user_on_restore(
+    restored_user = _validate_user_on_restore(
         phone_no=request.phone_no,
         email=request.email,
         db=db,

@@ -28,22 +28,22 @@ def signup(
     admin_user_instance: schemas.UserBase = request.admin_details
 
     # check email or phone duplicates
-    if user.is_user_exist(email=admin_user_instance.email, db=db) or user.is_user_exist(
-        phone_no=admin_user_instance.phone_no, db=db
-    ):
+    if user._is_user_exist(
+        email=admin_user_instance.email, db=db
+    ) or user._is_user_exist(phone_no=admin_user_instance.phone_no, db=db):
         raise ShopsAppException(
             message="User with this email or phone number already exists.",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
     # create coffee shop, branch and admin
-    created_coffee_shop = coffee_shop.create_coffee_shop(
+    created_coffee_shop = coffee_shop._create_coffee_shop(
         request=coffee_shop_instance, db=db
     )
     created_branch = branch.create_branch(
         request=branch_instance, db=db, coffee_shop_id=created_coffee_shop.id
     )
-    created_admin_user = user.create_user(
+    created_admin_user = user._create_user(
         request=admin_user_instance,
         db=db,
         role=UserRole.ADMIN,
@@ -55,9 +55,7 @@ def signup(
     )
 
 
-def verify_user_credentials_and_gen_token(
-    request: schemas.LoginRequestBody, db: Session
-) -> schemas.Token:
+def login(request: schemas.LoginRequestBody, db: Session) -> schemas.Token:
     """
     This helper function used to verify a user's credentials and generate a
     JWT token for the user.
@@ -81,7 +79,7 @@ def verify_user_credentials_and_gen_token(
 
     # create jwt and return it
     # get the coffee shop id
-    coffee_shop_id = branch.find_branch(
+    coffee_shop_id = branch._find_branch(
         branch_id=current_user.branch_id, db=db
     ).coffee_shop_id
     access_token = generate_token_for_user(

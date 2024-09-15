@@ -9,6 +9,11 @@ from typing import Optional
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a jwt token with the specified data and expiration time
+    *Args:
+        data: data to be encoded in the token
+        expires_delta: expiration time for the token
+    *Returns:
+        jwt token
     """
     to_encode = data.copy()
     if expires_delta:

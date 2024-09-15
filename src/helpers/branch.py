@@ -18,7 +18,7 @@ def create_branch(
         the created branch
     """
     # check if the shop exists
-    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
+    found_shop = coffee_shop._find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     created_branch = models.Branch(
         name=request.name, location=request.location, coffee_shop_id=coffee_shop_id
@@ -29,7 +29,7 @@ def create_branch(
     return created_branch
 
 
-def is_branch_have_users(branch_id: int, db: Session) -> bool:
+def _is_branch_have_users(branch_id: int, db: Session) -> bool:
     """
     This helper function will be used to check if a branch has users
     *Args:
@@ -44,7 +44,7 @@ def is_branch_have_users(branch_id: int, db: Session) -> bool:
     return query.first() is not None
 
 
-def find_branch(
+def _find_branch(
     branch_id: int, db: Session, coffee_shop_id: int = None
 ) -> models.Branch:
     """
@@ -88,7 +88,7 @@ def update_branch(
     """
 
     # check if the branch belongs to this coffee shop
-    found_branch = find_branch(
+    found_branch = _find_branch(
         db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
     )
 
@@ -116,12 +116,12 @@ def delete_branch(db: Session, branch_id: int, coffee_shop_id: int) -> None:
     """
 
     # check if the branch belongs to this coffee shop
-    found_branch = find_branch(
+    found_branch = _find_branch(
         db=db, branch_id=branch_id, coffee_shop_id=coffee_shop_id
     )
 
     # check if the branch has users
-    if is_branch_have_users(branch_id=branch_id, db=db):
+    if _is_branch_have_users(branch_id=branch_id, db=db):
         raise ShopsAppException(
             message="Branch has associated users, please remove them first",
             status_code=status.HTTP_409_CONFLICT,  # conflict error
