@@ -62,7 +62,7 @@ def full_update_user_endpoint(
 
 
 @router.patch("/restore", response_model=schemas.UserResponse)
-def restore_deleted_user_endpoint(
+def restore_user_endpoint(
     request: schemas.UserInRestorePATCHRequestBody,
     db: Session = Depends(get_db),
     current_user: schemas.TokenData = Depends(require_role([UserRole.ADMIN])),
@@ -71,7 +71,7 @@ def restore_deleted_user_endpoint(
     PATCH endpoint to restore a deleted user to a specific branch
     """
     try:
-        return user.restore_deleted_user(
+        return user.restore_user(
             db=db, request=request, admin_coffee_shop_id=current_user.coffee_shop_id
         )
     except ShopsAppException as se:

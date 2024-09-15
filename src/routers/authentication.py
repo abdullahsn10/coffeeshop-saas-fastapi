@@ -40,9 +40,7 @@ def login_endpoint(
     """
     try:
         response.status_code = status.HTTP_200_OK
-        return authentication.verify_user_credentials_and_gen_token(
-            request=request, db=db
-        )
+        return authentication.login(request=request, db=db)
     except ShopsAppException as se:
         raise HTTPException(status_code=se.status_code, detail=se.message)
     except Exception as e:

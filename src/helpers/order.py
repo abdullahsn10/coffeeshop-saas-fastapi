@@ -14,7 +14,7 @@ from fastapi import status
 from sqlalchemy.exc import SQLAlchemyError
 
 
-def validate_order_items(
+def _validate_order_items(
     items_list: list[schemas.MenuItemInPOSTOrderRequestBody],
     coffee_shop_id: int,
     db: Session,
@@ -28,12 +28,12 @@ def validate_order_items(
         raise ShopsAppException in case of violation
     """
     for item in items_list:
-        menu_item.find_menu_item(
+        menu_item._find_menu_item(
             db=db, menu_item_id=item.id, coffee_shop_id=coffee_shop_id
         )
 
 
-def create_order(
+def _create_order(
     customer_id: int,
     issuer_id: int,
     db: Session,
@@ -98,15 +98,15 @@ def place_an_order(
     customer_details: schemas.CustomerPOSTRequestBody = request.customer_details
     order_items: list[schemas.MenuItemInPOSTOrderRequestBody] = request.order_items
 
-    validate_order_items(items_list=order_items, db=db, coffee_shop_id=coffee_shop_id)
+    _validate_order_items(items_list=order_items, db=db, coffee_shop_id=coffee_shop_id)
 
     # Create customer
-    created_customer_instance = customer.create_customer(
+    created_customer_instance = customer._create_customer(
         request=customer_details, db=db, coffee_shop_id=coffee_shop_id
     )
 
     # Create order and its items
-    created_order = create_order(
+    created_order = _create_order(
         customer_id=created_customer_instance.id,
         issuer_id=issuer_id,
         db=db,
@@ -120,7 +120,7 @@ def place_an_order(
     )
 
 
-def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models.Order:
+def _find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models.Order:
     """
     This helper function used to find a specific order
     *Args:
@@ -148,7 +148,7 @@ def find_order(order_id: int, db: Session, coffee_shop_id: int = None) -> models
     return found_order
 
 
-def find_all_orders(
+def _find_all_orders(
     db: Session,
     coffee_shop_id: int,
     size: int,
@@ -205,7 +205,7 @@ def get_order_details(
     *Returns:
         OrderGETResponse instance contains the order details
     """
-    found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
+    found_order = _find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
     return schemas.OrderGETResponse(
         id=found_order.id,
         issue_date=found_order.issue_date,
@@ -231,7 +231,7 @@ def get_all_orders_details(
         PaginatedOrderResponse instance contains the orders details
     """
 
-    all_orders, total_count = find_all_orders(
+    all_orders, total_count = _find_all_orders(
         db=db, status=status, coffee_shop_id=coffee_shop_id, size=size, page=page
     )
     orders: list[schemas.OrderGETResponse] = [
@@ -253,7 +253,7 @@ def get_all_orders_details(
     )
 
 
-def validate_status_change(new_status: str, user_role: str) -> None:
+def _validate_status_change(new_status: str, user_role: str) -> None:
     """
     This helper function used to validate the change in the status of the order
     *Args:
@@ -290,8 +290,8 @@ def update_order_status(
     *Returns:
         None in case of success, raise ShopsAppException in case of any failure
     """
-    found_order = find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
-    validate_status_change(new_status=request.status.value, user_role=user_role)
+    found_order = _find_order(order_id=order_id, coffee_shop_id=coffee_shop_id, db=db)
+    _validate_status_change(new_status=request.status.value, user_role=user_role)
     found_order.status = request.status
     db.commit()
 
@@ -312,7 +312,7 @@ def assign_order(
     *Returns:
         None in case of success, raise ShopsAppException in case of any failure
     """
-    found_order = find_order(order_id=order_id, db=db, coffee_shop_id=coffee_shop_id)
+    found_order = _find_order(order_id=order_id, db=db, coffee_shop_id=coffee_shop_id)
     found_user = user.find_user(user_id=chef_id, db=db, coffee_shop_id=coffee_shop_id)
     if found_user.role != UserRole.CHEF:
         raise ShopsAppException(

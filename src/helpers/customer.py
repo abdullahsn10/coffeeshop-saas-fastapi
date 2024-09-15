@@ -4,7 +4,7 @@ from src.exceptions import ShopsAppException
 from fastapi import status
 
 
-def find_customer(
+def _find_customer(
     db: Session,
     phone_no: str = None,
     customer_id: int = None,
@@ -36,7 +36,7 @@ def find_customer(
     return query.first()
 
 
-def create_customer(
+def _create_customer(
     request: schemas.CustomerPOSTRequestBody,
     db: Session,
     coffee_shop_id: int,
@@ -49,7 +49,7 @@ def create_customer(
     *Returns:
         the Customer instance
     """
-    customer_instance = find_customer(
+    customer_instance = _find_customer(
         db, phone_no=request.phone_no, coffee_shop_id=coffee_shop_id
     )
     if not customer_instance:
@@ -64,7 +64,7 @@ def create_customer(
     return customer_instance
 
 
-def validate_customer_on_update(
+def _validate_customer_on_update(
     customer_id: int, coffee_shop_id: int, db: Session, customer_phone_no: str
 ) -> models.Customer:
     """
@@ -78,7 +78,7 @@ def validate_customer_on_update(
         Raise Exceptions in case of violation, return the customer instance otherwise
     """
 
-    found_customer = find_customer(
+    found_customer = _find_customer(
         db=db, customer_id=customer_id, coffee_shop_id=coffee_shop_id
     )
     if not found_customer:
@@ -87,7 +87,7 @@ def validate_customer_on_update(
         )
 
     # validate customer phone number uniqueness
-    if find_customer(
+    if _find_customer(
         db=db,
         phone_no=customer_phone_no,
         coffee_shop_id=coffee_shop_id,
@@ -118,7 +118,7 @@ def update_customer(
         UserPUTAndPATCHResponse: The updated user details.
     """
 
-    customer_instance: models.Customer = validate_customer_on_update(
+    customer_instance: models.Customer = _validate_customer_on_update(
         customer_id=customer_id,
         db=db,
         coffee_shop_id=coffee_shop_id,
@@ -179,7 +179,7 @@ def get_customer_details(
     *Returns:
         the customer instance if exists, raise exception otherwise
     """
-    found_customer = find_customer(
+    found_customer = _find_customer(
         db=db, customer_id=customer_id, coffee_shop_id=coffee_shop_id
     )
     if not found_customer:

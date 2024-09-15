@@ -4,7 +4,7 @@ from src.exceptions.exception import *
 from src.helpers import user
 
 
-def create_coffee_shop(
+def _create_coffee_shop(
     request: schemas.CoffeeShopBase, db: Session
 ) -> models.CoffeeShop:
     """
@@ -24,7 +24,7 @@ def create_coffee_shop(
     return created_shop_instance
 
 
-def find_coffee_shop(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
+def _find_coffee_shop(db: Session, coffee_shop_id: int) -> models.CoffeeShop:
     """
     This helper function used to find a coffee shop by id
     *Args:
@@ -56,7 +56,7 @@ def update_coffee_shop(
         CoffeeShopPUTResponse: updated coffee shop details
     """
 
-    found_coffee_shop: models.CoffeeShop = find_coffee_shop(
+    found_coffee_shop: models.CoffeeShop = _find_coffee_shop(
         db=db, coffee_shop_id=coffee_shop_id
     )
     # Update all fields of the coffee shop object based on the request

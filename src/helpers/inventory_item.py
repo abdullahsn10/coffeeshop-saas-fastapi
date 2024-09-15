@@ -6,7 +6,7 @@ from src.helpers import coffee_shop
 from src.exceptions.exception import *
 
 
-def validate_prod_and_expire_date_in_item(
+def _validate_prod_and_expire_date_in_item(
     prod_date: date,
     expire_date: date,
 ) -> None:
@@ -39,10 +39,10 @@ def create_inventory_item(
         the created inventory item
     """
     # check if the shop exists (Additional Logic, only to ensure everything is okay)
-    found_shop = coffee_shop.find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
+    found_shop = coffee_shop._find_coffee_shop(db=db, coffee_shop_id=coffee_shop_id)
 
     # validate prod date and expire date
-    validate_prod_and_expire_date_in_item(
+    _validate_prod_and_expire_date_in_item(
         prod_date=request.prod_date,
         expire_date=request.expire_date,
     )
@@ -61,7 +61,7 @@ def create_inventory_item(
     return created_inventory_item
 
 
-def find_inventory_item(
+def _find_inventory_item(
     db: Session, inventory_item_id: int, coffee_shop_id: Optional[int] = None
 ) -> models.InventoryItem:
     """
@@ -124,13 +124,13 @@ def update_inventory_item(
     *Returns:
         the updated inventory item
     """
-    found_inventory_item: models.InventoryItem = find_inventory_item(
+    found_inventory_item: models.InventoryItem = _find_inventory_item(
         db=db,
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
     )
     # validate prod and expire date
-    validate_prod_and_expire_date_in_item(
+    _validate_prod_and_expire_date_in_item(
         prod_date=request.prod_date,
         expire_date=request.expire_date,
     )
@@ -160,7 +160,7 @@ def delete_inventory_item(
     """
 
     # check if the branch belongs to this coffee shop
-    found_inventory_item: models.InventoryItem = find_inventory_item(
+    found_inventory_item: models.InventoryItem = _find_inventory_item(
         db=db,
         inventory_item_id=inventory_item_id,
         coffee_shop_id=admin_coffee_shop_id,
