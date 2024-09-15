@@ -8,7 +8,7 @@ from src.exceptions import ShopsAppException
 from src.helpers import customer, menu_item, user, coffee_shop
 from src.models.order import OrderStatus
 from src.models.user import UserRole
-from src.settings.settings import ROLE_STATUS_MAPPING
+from src.definition import ROLE_STATUS_MAPPING
 from collections import defaultdict
 from fastapi import status
 from sqlalchemy.exc import SQLAlchemyError

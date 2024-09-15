@@ -24,9 +24,3 @@ JWT_TOKEN_SETTINGS = {
     "ALGORITHM": os.getenv("ALGORITHM"),
     "ACCESS_TOKEN_EXPIRE_MINUTES": os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"),
 }
-
-# UserRole to OrderStatus Mapping
-ROLE_STATUS_MAPPING = {
-    "CASHIER": ["CLOSED"],
-    "CHEF": ["IN_PROGRESS", "COMPLETED"],
-}
